@@ -1,0 +1,817 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-fluid py-3">
+
+  <!-- HEADER -->
+  <div class="mb-4">
+    <h4 class="fw-bold mb-0 d-flex align-items-center">
+      <i class="bi bi-speedometer2 text-primary me-2"></i> Dashboard
+    </h3>
+  </div>
+
+<!-- SCHEDULER CONTROL (Improved UX) -->
+<div class="card shadow-sm border-0 mb-4">
+  <div class="card-body">
+
+    <!-- 🔹 Judul + Status -->
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center mb-3">
+      <div>
+        <h6 class="fw-bold text mb-1 d-flex align-items-center">
+          <i class="bi bi-clock-history text me-2"></i> Auto Scheduler
+        </h6>
+        <p class="small text-secondary mb-2 mb-lg-0">
+          Jalankan scraping review otomatis dengan interval tertentu.
+        </p>
+      </div>
+
+      <!-- 🔸 Status badge -->
+      <div class="mt-2 mt-lg-0">
+        <span id="sched-status-badge" class="badge bg-danger px-3 py-2">
+          Stopped
+        </span>
+      </div>
+    </div>
+
+    <!-- 🔹 Interval & Tombol -->
+    <div class="d-flex flex-wrap align-items-center gap-2">
+      <div class="input-group input-group-sm flex-grow-1 flex-lg-grow-0" style="max-width: 160px;">
+        <input type="number" id="sched-interval" class="form-control text-center" value="15" min="1">
+        <span class="input-group-text">Minutes</span>
+      </div>
+
+      <button id="btn-start-sched" class="btn btn-success btn-sm flex-fill flex-lg-grow-0">
+        <i class="bi bi-play-fill me-1"></i> Start
+      </button>
+
+      <button id="btn-stop-sched" class="btn btn-danger btn-sm flex-fill flex-lg-grow-0" disabled>
+        <i class="bi bi-stop-fill me-1"></i> Stop
+      </button>
+
+      <!-- ⏱️ Countdown pindah ke sini -->
+      <span id="sched-countdown-badge" class="badge bg-secondary px-3 py-2 ms-auto">
+        ⏱️ 00:00
+      </span>
+    </div>
+
+  </div>
+</div>
+
+  <!-- ROW 1: HOTEL INFO | LATEST REVIEWS | SENTIMENT OVERVIEW -->
+  <div class="row g-4 mb-4">
+    <!-- HOTEL INFO -->
+    <div class="col-md-4">
+      <div class="card shadow-sm border-0 h-100 position-relative overflow-hidden">
+        <img src="{{ url_for('static', filename='img/hotel.jpg') }}" 
+             class="w-100 h-100 hotel-img" alt="{{ hotel.hotel_name }}">
+
+        <div class="position-absolute bottom-0 start-0 end-0 p-3 hotel-overlay">
+          <h5 class="fw-bold text-white mb-1">
+            {{ hotel.hotel_name }}
+            <a href="https://avetahotelmalioboro.com/" target="_blank" class="text-info ms-1"><i class="bi bi-box-arrow-up-right"></i></a>
+          </h5>
+          <p class="text-light small mb-1"><i class="bi bi-geo-alt me-1"></i> {{ hotel.address }}</p>
+
+          <div class="d-flex align-items-center text-warning fw-bold">
+            <span class="fs-4">{{ "%.1f"|format(avg_rating or 0) }}</span>
+            <span class="ms-2">⭐</span>
+            <span class="text-white small ms-2">({{ total_reviews or 0 }} Reviews)</span>
+          </div>
+
+          <div class="mt-2 text-white small">
+            {% for star in range(5,0,-1) %}
+            <div class="d-flex align-items-center mb-1">
+              <div class="rating-label">{{ star }}</div>
+              <div class="progress flex-grow-1 rating-progress">
+                <div class="progress-bar bg-warning" role="progressbar"
+                  style="width: {{ rating_dist[star]|default(0) }}%;" 
+                  aria-valuenow="{{ rating_dist[star]|default(0) }}" aria-valuemin="0" aria-valuemax="100"></div>
+              </div>
+              <div class="rating-percent">{{ rating_dist[star]|default(0) }}%</div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 🌟 LATEST REVIEWS SECTION -->
+<div class="col-md-4">
+  <div class="card shadow-sm border-0 h-100 rounded-4 bg-body-tertiary">
+    <div class="card-body">
+      <h6 class="fw-bold mb-3 d-flex align-items-center">
+        <i class="bi bi-chat-dots me-2 text-bold"></i> Latest Reviews
+      </h6>
+
+      {% if latest %}
+      <div class="reviews-container" style="max-height: 360px; overflow-y: auto; padding-right: 6px;">
+        {% for r in latest %}
+        <div class="review-item mb-3 p-3 rounded-4 shadow-sm border bg-body-secondary text-body">
+          
+          <!-- 🧍 User -->
+          <p class="fw-bold mb-1 d-flex align-items-center">
+            <i class="bi bi-person-circle text-primary me-1"></i>{{ r.user_name }}
+          </p>
+
+          <!-- 💬 Review Text -->
+          <p class="small mb-2 text-body-secondary">
+            <i class="bi bi-pencil-square me-1 text-secondary"></i>
+            {{ (r.review_text if r.review_text and r.review_text.strip() else '(None)')|e }}
+          </p>
+
+          <!-- ⭐ Rating -->
+          <div class="small mb-1">
+            <i class="bi bi-star-fill text-warning me-1"></i>{{ r.rating }} / 5
+          </div>
+
+          <!-- 🕒 Waktu -->
+          <div class="small mb-1">
+            <i class="bi bi-clock me-1"></i>
+            {{ r.review_date.strftime("%d-%m-%Y %H:%M:%S") if r.review_date else 'Unknown' }} WIB
+          </div>
+
+          <!-- 🌐 Sumber -->
+          <div class="small mb-2">
+            <i class="bi bi-globe me-1"></i>{{ r.source }}
+          </div>
+
+          <!-- 🧠 Sentiments -->
+          <div class="mt-2">
+            <span class="badge {% if r.sentiment_nb == 'POSITIF' %}bg-success{% elif r.sentiment_nb == 'NEGATIF' %}bg-danger{% else %}bg-secondary{% endif %} me-1">
+              NB: {{ r.sentiment_nb }}
+            </span>
+            <span class="badge {% if r.sentiment_svm == 'POSITIF' %}bg-success{% elif r.sentiment_svm == 'NEGATIF' %}bg-danger{% else %}bg-secondary{% endif %}">
+              SVM: {{ r.sentiment_svm }}
+            </span>
+
+            <!-- 🔹 Garis pembatas -->
+            <hr class="my-3 opacity-50">
+
+            <!-- 🔹 Kesimpulan -->
+            <div class="small sentiment-explanation">
+              {% if r.sentiment_nb == 'POSITIF' and r.sentiment_svm == 'POSITIF' %}
+                <strong>Kesimpulan:</strong> Review ini dinilai <b>POSITIF</b> oleh kedua model.
+              {% elif r.sentiment_nb == 'NEGATIF' and r.sentiment_svm == 'NEGATIF' %}
+                <strong>Kesimpulan:</strong> Review ini dinilai <b>NEGATIF</b> oleh kedua model.
+              {% elif r.sentiment_nb != r.sentiment_svm %}
+                <strong>Kesimpulan:</strong> Hasil model berbeda — perlu tinjauan manual.
+              {% else %}
+                <strong>Kesimpulan:</strong> Sentimen tidak dapat ditentukan.
+              {% endif %}
+            </div>
+          </div>
+
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="text-center text-muted fst-italic mb-0">Belum ada review untuk ditampilkan 💭</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+
+    <!-- SENTIMENT OVERVIEW -->
+<div class="col-md-4">
+  <div class="card shadow-sm border-0 h-100">
+    <div class="card-body d-flex flex-column justify-content-between">
+
+      <!-- Bagian Atas: Sentiment -->
+      <div>
+        <h6 class="fw-bold text mb-3 d-flex align-items-center">
+          <i class="bi bi-emoji-smile me-1"></i> Sentiment Overview
+        </h6>
+
+        <div class="row text-center mb-3">
+          <div class="col">
+            <span class="badge bg-success px-3 py-2 w-100">👍 {{ counts.POSITIF or 0 }} POSITIF</span>
+          </div>
+          <div class="col">
+            <span class="badge bg-danger px-3 py-2 w-100">👎 {{ counts.NEGATIF or 0 }} NEGATIF</span>
+          </div>
+        </div>
+
+        {% set total = (counts.POSITIF or 0) + (counts.NEGATIF or 0) %}
+        {% set pos_percent = ((counts.POSITIF or 0) * 100 // total) if total > 0 else 0 %}
+        {% set neg_percent = ((counts.NEGATIF or 0) * 100 // total) if total > 0 else 0 %}
+
+        <div class="mb-3">
+          <div class="d-flex justify-content-between fw-text mb-1">
+            <span>POSITIF {{ pos_percent }}%</span>
+            <span>NEGATIF {{ neg_percent }}%</span>
+          </div>
+          <div class="progress sentiment-progress">
+            <div class="progress-bar bg-success" role="progressbar" style="width: {{ pos_percent }}%;"></div>
+            <div class="progress-bar bg-danger" role="progressbar" style="width: {{ neg_percent }}%;"></div>
+          </div>
+        </div>
+        <!--  Pemisah visual -->
+        <hr class="sentiment-divider my-4">
+
+        <!-- Bagian Bawah: Perbandingan Mingguan -->
+        <h6 class="fw-bold mb-3 d-flex align-items-center">
+          <i class="bi bi-bar-chart-line-fill text me-1"></i> Perbandingan Mingguan
+        </h6>
+        <canvas id="weeklyChart" height="120"></canvas>
+        <p class="small mt-2 {% if weekly.this_week > weekly.last_week %}text{% elif weekly.this_week < weekly.last_week %}text{% else %}text{% endif %}">
+          {% if weekly.this_week > weekly.last_week %}
+            📈 Jumlah review meningkat dibanding minggu lalu.
+          {% elif weekly.this_week < weekly.last_week %}
+            📉 Jumlah review menurun dibanding minggu lalu.
+          {% else %}
+            ➖ Jumlah review stabil dibanding minggu lalu.
+          {% endif %}
+        </p>
+      </div>
+      <!-- Total Minggu Ini -->
+      <div class="text-center mt-2 pt-2 border-top border-light-subtle">
+        <h6  class="fw text px-4 py-3 shadow-sm fs-6">
+          📊 <strong>Total Minggu Ini:</strong> 
+          <span class="text-align">{{ weekly.this_week or 0 }}</span> Reviews
+        </h6>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <!-- ROW 2: TREND CHART -->
+<div class="card shadow-sm border-0 mb-4">
+  <div class="card-body">
+    <div class="d-flex justify-content-between align-items-center flex-wrap mb-2">
+      <h6 class="fw-bold text mb-3 d-flex align-items-center">
+        <i class="bi bi-graph-up fw-bold me-1"></i> Trend Review Mingguan
+      </h5>
+    </div>
+    <!-- Responsive Chart Wrapper -->
+    <div class="chart-container">
+      <canvas id="trendChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ROW: KEYWORD ANALYSIS -->
+<div class="card shadow-sm border-0 mb-4">
+  <div class="card-body">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h6 class="fw-bold text mb-3 d-flex align-items-center">
+        <i class="bi bi-keyboard fw-bold me-1"></i> Keyword Analysis
+      </h6>
+
+      <ul class="nav nav-pills nav-sm" id="keywordTabs" role="tablist">
+        <li class="nav-item">
+          <button class="nav-link active" id="list-tab" data-bs-toggle="tab" data-bs-target="#list-view" type="button" role="tab">
+            <i class="bi bi-list-ul"></i> List View
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" id="cloud-tab" data-bs-toggle="tab" data-bs-target="#cloud-view" type="button" role="tab">
+            <i class="bi bi-cloud"></i> Word Cloud
+          </button>
+        </li>
+      </ul>
+    </div>
+    <div class="tab-content mt-3">
+      <!-- LIST VIEW -->
+      <div class="tab-pane fade show active" id="list-view" role="tabpanel">
+        <div class="row">
+          <!-- POSITIVE -->
+          <div class="col-md-6">
+            <h6 class="text-success mb-3 d-flex align-items-center justify-content-center">
+              <i class="bi bi-emoji-smile me-1"></i> Keywords Positif (<span id="count-pos">0</span>)
+            </h6>
+            <ul id="pos-keywords" class="list-unstyled keyword-list"></ul>
+          </div>
+          <!-- NEGATIVE -->
+          <div class="col-md-6">
+            <h6 class="text-danger mb-3 d-flex align-items-center justify-content-center">
+              <i class="bi bi-emoji-frown me-1"></i> Keywords Negatif (<span id="count-neg">0</span>)
+            </h6>
+            <ul id="neg-keywords" class="list-unstyled keyword-list"></ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- WORD CLOUD VIEW -->
+      <div class="tab-pane fade text-center" id="cloud-view" role="tabpanel">
+        <div class="row justify-content-center">
+          <!-- Word Cloud Positif -->
+          <div class="col-md-6">
+            <h6 class="text-success mb-3 d-flex align-items-center justify-content-center">
+              <i class="bi bi-cloud-arrow-up-fill me-1"></i> Word Cloud Positif
+            </h6>
+            <div class="p-2 border rounded-3 bg-light-subtle shadow-sm">
+              <canvas id="wordCloudPositive" width="400" height="300"></canvas>
+            </div>
+          </div>
+          <!-- Word Cloud Negatif -->
+          <div class="col-md-6">
+            <h6 class="text-danger mb-3 d-flex align-items-center justify-content-center">
+              <i class="bi bi-cloud-arrow-down-fill me-1"></i> Word Cloud Negatif
+            </h6>
+            <div class="p-2 border rounded-3 bg-light-subtle shadow-sm">
+              <canvas id="wordCloudNegative" width="400" height="300"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 💅 Tambahan CSS (bisa ditaruh di base.html atau style block di atas) -->
+<style>
+  .review-item {
+    transition: all 0.25s ease-in-out;
+  }
+  .review-item:hover {
+    background-color: #f8f9fa;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+
+  .reviews-container::-webkit-scrollbar {
+    width: 6px;
+  }
+  .reviews-container::-webkit-scrollbar-thumb {
+    background-color: rgba(0,0,0,0.2);
+    border-radius: 10px;
+  }
+  .reviews-container::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0,0,0,0.35);
+  }
+  .sched-input { width: 140px; }
+  .hotel-img { object-fit: cover; filter: brightness(65%); }
+  .hotel-overlay { background: linear-gradient(to top, rgba(0,0,0,0.75), rgba(0,0,0,0)); }
+  .rating-label { width:28px; }
+  .rating-progress { height: 8px; }
+  .rating-percent { width:45px; text-align:right; }
+  .sentiment-progress { height:14px; border-radius:7px; }
+  /* Keyword list styling */
+.keyword-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bs-tertiary-bg); /* adaptif sesuai theme */
+  padding: 6px 10px;
+  margin-bottom: 6px;
+  border-radius: 6px;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  color: var(--bs-body-color);
+}
+
+.keyword-list li:hover {
+  transform: translateX(3px);
+  background: var(--bs-primary-bg-subtle);
+}
+
+/* --- GLOBAL SCHEDULER STYLE --- */
+.sched-input {
+  width: 140px;
+}
+
+#btn-start-sched,
+#btn-stop-sched {
+  min-width: 80px;
+  font-size: 0.85rem;
+  padding: 4px 10px;
+}
+
+#sched-status-badge, #sched-countdown-badge {
+  font-size: 0.9rem;
+  border-radius: 6px;
+}
+
+/* --- MOBILE OPTIMIZATION --- */
+@media (max-width: 576px) {
+  /* Biar badge sejajar rapi */
+  #sched-status-badge, #sched-countdown-badge {
+    flex: 1;
+    text-align: center;
+    font-size: 0.85rem;
+  }
+
+  /* Group kontrol di tengah dan lebih kecil */
+  .scheduler-controls {
+    width: 100%;
+  }
+
+  .scheduler-controls .input-group {
+    width: 110px; /* Perkecil field minutes */
+  }
+
+  .scheduler-controls .sched-btn {
+    min-width: 70px; /* Kecilkan tombol */
+    padding: 3px 8px;
+    font-size: 0.8rem;
+  }
+
+  /* Tengahin semua elemen */
+  .scheduler-controls .d-flex {
+    justify-content: center !important;
+  }
+
+  /* Tambahkan sedikit jarak antar tombol biar rapi */
+  .scheduler-controls .gap-2 {
+    gap: 0.4rem !important;
+  }
+}
+/*  Latest Review */
+.review-item {
+  background-color: var(--bs-light);
+  border-radius: 6px;
+  padding: 8px 10px;
+  transition: all 0.2s ease-in-out;
+}
+.review-item:hover {
+  background-color: var(--bs-primary-bg-subtle);
+  transform: translateY(-2px);
+}
+.review-item p {
+  line-height: 1.4;
+}
+.review-item .badge {
+  font-size: 0.75rem;
+  padding: 4px 8px;
+}
+
+/* --- Responsive Chart Container --- */
+.chart-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  min-height: 220px;
+}
+@media (max-width: 576px) {
+  .chart-container {
+    aspect-ratio: 4 / 3;
+    min-height: 200px;
+  }
+}
+
+#sched-status-badge, #sched-countdown-badge {
+  font-size: 0.85rem;
+  border-radius: 6px;
+  color: var(--bs-body-bg);
+}
+.keyword-list li {
+  font-size: 0.9rem;
+}
+sched-countdown-badge { padding: 4px 10px; }
+.user-greeting {
+      background-color: var(--bs-light);
+      color: var(--bs-body-color);
+}
+</style>
+
+<script>
+// contoh konfigurasi responsif Chart.js
+const ctx = document.getElementById('trendChart').getContext('2d');
+const trendChart = new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: ["2025-10-05","2025-10-06","2025-10-07","2025-10-08","2025-10-09","2025-10-10","2025-10-11"],
+    datasets: [
+      {
+        label: 'Positif',
+        data: [2,3,2,1,1,3,2],
+        borderColor: '#198754',
+        backgroundColor: 'rgba(25, 135, 84, 0.2)',
+        fill: true,
+        tension: 0.4,
+        pointRadius: 4,
+        pointBackgroundColor: '#198754'
+      },
+      {
+        label: 'Negatif',
+        data: [0,0,0,0,0,0,0],
+        borderColor: '#dc3545',
+        backgroundColor: 'rgba(220, 53, 69, 0.1)',
+        fill: true,
+        tension: 0.4,
+        pointRadius: 4,
+        pointBackgroundColor: '#dc3545'
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false, // 🔥 kunci utama biar full width di laptop
+    plugins: {
+      legend: {
+        position: 'top',
+        labels: {
+          boxWidth: 18,
+          font: { size: window.innerWidth < 576 ? 10 : 13 }
+        }
+      },
+      tooltip: {
+        titleFont: { size: window.innerWidth < 576 ? 11 : 14 },
+        bodyFont: { size: window.innerWidth < 576 ? 10 : 12 }
+      }
+    },
+    scales: {
+      x: {
+        ticks: { font: { size: window.innerWidth < 576 ? 9 : 12 } },
+        grid: { display: false }
+      },
+      y: {
+        beginAtZero: true,
+        ticks: {
+          stepSize: 1,         // jarak antar angka = 1
+          precision: 0,
+          autoSkip: false,        // hilangkan desimal
+          callback: function(value) {
+            return Number.isInteger(value) ? value : null; // tampilkan hanya angka bulat
+          },
+          font: { size: window.innerWidth < 576 ? 9 : 12 }
+        },
+        grid: { color: 'rgba(0,0,0,0.08)' } // opsional: ubah warna grid agar lembut
+        }
+
+    }
+  }
+})
+<style>
+
+</script>
+
+</div> <!-- container -->
+<!-- SCRIPTS -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/wordcloud2.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  // ==============================
+  // 🕒 SCHEDULER UI
+  // ==============================
+  const statusBadge = document.getElementById('sched-status-badge');
+  const countdownBadge = document.getElementById('sched-countdown-badge');
+  const inputEl = document.getElementById('sched-interval');
+  const btnStart = document.getElementById('btn-start-sched');
+  const btnStop = document.getElementById('btn-stop-sched');
+
+  let countdownTimer = null;
+  let remainingSeconds = 0;
+
+  function secondsToMMSS(sec) {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  }
+
+  function startCountdown(seconds) {
+    clearInterval(countdownTimer);
+    remainingSeconds = seconds;
+    updateCountdownUI();
+    countdownTimer = setInterval(() => {
+      remainingSeconds--;
+      if (remainingSeconds <= 0) {
+        clearInterval(countdownTimer);
+        countdownBadge.textContent = "⏳ Refreshing...";
+        loadTrend();
+        getSchedulerStatus();
+      } else {
+        updateCountdownUI();
+      }
+    }, 1000);
+  }
+
+  function updateCountdownUI() {
+    countdownBadge.textContent = `⏱️ ${secondsToMMSS(remainingSeconds)}`;
+  }
+
+  function setRunningUI(running, minutes = null, remaining = null) {
+    if (running) {
+      statusBadge.classList.replace('bg-danger', 'bg-success');
+      statusBadge.textContent = 'Running';
+      inputEl.disabled = true;
+      btnStart.disabled = true;
+      btnStop.disabled = false;
+      const sec = remaining ? remaining : (minutes * 60);
+      startCountdown(sec);
+    } else {
+      statusBadge.classList.replace('bg-success', 'bg-danger');
+      statusBadge.textContent = 'Stopped';
+      inputEl.disabled = false;
+      btnStart.disabled = false;
+      btnStop.disabled = true;
+      clearInterval(countdownTimer);
+      countdownBadge.textContent = '⏱️00:00';
+    }
+  }
+
+  // Scheduler control
+  btnStart.addEventListener('click', async () => {
+    const minutes = parseInt(inputEl.value) || 15;
+    const res = await fetch('{{ url_for("api_sched_start") }}', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ minutes })
+    });
+    const d = await res.json();
+    if (d.ok) setRunningUI(true, minutes, d.remaining || null);
+    else alert("Gagal memulai scheduler");
+  });
+
+  btnStop.addEventListener('click', async () => {
+    const res = await fetch('{{ url_for("api_sched_stop") }}', { method: 'POST' });
+    const d = await res.json();
+    if (d.ok) setRunningUI(false);
+    else alert("Gagal menghentikan scheduler");
+  });
+
+  async function getSchedulerStatus() {
+    try {
+      const res = await fetch('{{ url_for("api_sched_status") }}');
+      const d = await res.json();
+      if (d.running) {
+        setRunningUI(true, d.interval, d.remaining);
+      } else {
+        setRunningUI(false);
+      }
+    } catch (err) { console.error("sched status error", err); }
+  }
+
+  // ==============================
+  // 🔤 KEYWORDS + WORD CLOUD
+  // ==============================
+  async function loadKeywords() {
+    try {
+      const res = await fetch('/api/analytics/keywords');
+      const d = await res.json();
+      if (!d.ok) return;
+
+      const pos = d.positive || [];
+      const neg = d.negative || [];
+
+      // Render list
+      const posList = document.getElementById('pos-keywords');
+      const negList = document.getElementById('neg-keywords');
+      posList.innerHTML = '';
+      negList.innerHTML = '';
+
+      pos.forEach(item => {
+        posList.innerHTML += `<li>✅ ${escapeHtml(item.word)} <span class="text-muted">(${item.count})</span></li>`;
+      });
+      neg.forEach(item => {
+        negList.innerHTML += `<li>❌ ${escapeHtml(item.word)} <span class="text-muted">(${item.count})</span></li>`;
+      });
+
+      document.getElementById('count-pos').textContent = pos.length;
+      document.getElementById('count-neg').textContent = neg.length;
+
+      // Generate 2 word clouds (positive & negative)
+      generateWordCloud(pos, neg);
+    } catch (err) {
+      console.error("Failed to load keywords", err);
+    }
+  }
+
+  // --- Fungsi pembuat Word Cloud ---
+  function generateWordCloud(pos, neg) {
+    const canvasPos = document.getElementById('wordCloudPositive');
+    const canvasNeg = document.getElementById('wordCloudNegative');
+
+    // POSITIVE CLOUD
+    if (canvasPos) {
+      if (pos.length > 0) {
+        WordCloud(canvasPos, {
+          list: pos.map(k => [k.word, k.count]),
+          color: () => '#198754',
+          backgroundColor: 'transparent',
+          rotateRatio: 0.1,
+          weightFactor: 8,
+          fontFamily: 'Poppins, sans-serif'
+        });
+      } else {
+        const ctx = canvasPos.getContext('2d');
+        ctx.clearRect(0, 0, canvasPos.width, canvasPos.height);
+        ctx.fillStyle = '#999';
+        ctx.font = '14px Poppins';
+        ctx.fillText('Tidak ada data positif 😔', 80, 150);
+      }
+    }
+
+    // NEGATIVE CLOUD
+    if (canvasNeg) {
+      if (neg.length > 0) {
+        WordCloud(canvasNeg, {
+          list: neg.map(k => [k.word, k.count]),
+          color: () => '#dc3545',
+          backgroundColor: 'transparent',
+          rotateRatio: 0.1,
+          weightFactor: 8,
+          fontFamily: 'Poppins, sans-serif'
+        });
+      } else {
+        const ctx = canvasNeg.getContext('2d');
+        ctx.clearRect(0, 0, canvasNeg.width, canvasNeg.height);
+        ctx.fillStyle = '#999';
+        ctx.font = '14px Poppins';
+        ctx.fillText('Tidak ada data negatif 😔', 80, 150);
+      }
+    }
+  }
+
+  // Saat tab “Word Cloud” dibuka ulang → refresh cloud-nya
+  const cloudTab = document.getElementById('cloud-tab');
+  if (cloudTab) {
+    cloudTab.addEventListener('shown.bs.tab', () => loadKeywords());
+  }
+
+
+  // 📈 TREND CHART
+
+  let trendChart = null;
+  let weeklyChart = null;
+
+  async function loadTrend(days = 7) {
+    try {
+      const resp = await fetch(`/api/analytics/trend?days=${days}`);
+      const data = await resp.json();
+
+      const labels = data.map(r => r.date);
+      const posData = data.map(r => r.pos);
+      const negData = data.map(r => r.neg);
+
+      const ctx = document.getElementById('trendChart').getContext('2d');
+      if (trendChart) trendChart.destroy();
+      trendChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Positif',
+              data: posData,
+              borderColor: '#198754',
+              backgroundColor: 'rgba(25,135,84,0.15)',
+              fill: true,
+              tension: 0.35
+            },
+            {
+              label: 'Negatif',
+              data: negData,
+              borderColor: '#dc3545',
+              backgroundColor: 'rgba(220,53,69,0.12)',
+              fill: true,
+              tension: 0.35
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { position: 'top' }, tooltip: { mode: 'index', intersect: false } },
+          interaction: { mode: 'index', intersect: false },
+          scales: {
+            x: { grid: { color: 'rgba(0,0,0,0.05)' } },
+            y: { beginAtZero: true }
+          }
+        }
+      });
+
+      // WEEKLY COMPARISON BAR
+      const weeklyCtx = document.getElementById('weeklyChart').getContext('2d');
+      if (weeklyChart) weeklyChart.destroy();
+      weeklyChart = new Chart(weeklyCtx, {
+        type: 'bar',
+        data: {
+          labels: ["Minggu Lalu", "Minggu Ini"],
+          datasets: [{
+            label: 'Jumlah Review',
+            data: [{{ weekly.last_week or 0 }}, {{ weekly.this_week or 0 }}],
+            backgroundColor: ['#6c757d', '#0d6efd']
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+    } catch (err) {
+      console.error("Trend API failed", err);
+    }
+  }
+
+
+  // 🔒 Utility
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  // 🚀 INIT
+  getSchedulerStatus();
+  loadKeywords();
+  loadTrend();
+});
+
+</script>
+{% endblock %}

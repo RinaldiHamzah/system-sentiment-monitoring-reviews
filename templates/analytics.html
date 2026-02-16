@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% block content %}
+<h4 class="mb-4"><i class="bi bi-bar-chart text-primary me-2"></i> Analytics</h4>
+
+<!-- Quick Stats -->
+<div class="row g-3">
+  <div class="col-6 col-md-3">
+    <div class="card text-center p-3 shadow-sm border-success">
+      <h6 class="fw-bold">👍 Total Positif</h6>
+      <h3 id="stat-positive">0</h3>
+      <small class="text-muted"></small>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card text-center p-3 shadow-sm border-danger">
+      <h6 class="fw-bold">👎 Total Negatif</h6>
+      <h3 id="stat-negative">0</h3>
+      <small class="text-muted"></small>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card text-center p-3 shadow-sm border-primary">
+      <h6 class="fw-bold">⭐ Rata-rata Rating</h6>
+      <h3 id="stat-rating">0.0</h3>
+      <small class="text-muted"></small>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card text-center p-3 shadow-sm border-info">
+      <h6 class="fw-bold">📈 Total Reviews</h6>
+      <h3 id="stat-total">0</h3>
+      <small class="text-muted"></small>
+    </div>
+  </div>
+</div>
+
+<!-- Charts Section -->
+<div class="row mt-4 g-3">
+  <!-- Pie Chart -->
+  <div class="col-12 col-md-6">
+    <div class="card p-3 h-100 shadow-sm" style="min-height:400px;">
+      <h6 class="fw-bold mb-3"><i class="bi bi-pie-chart me-1"></i> Sentiment Distribution</h6>
+      <div class="d-flex justify-content-center align-items-center" style="height:320px;">
+        <canvas id="pieChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Trend Chart -->
+  <div class="col-12 col-md-6">
+    <div class="card p-3 h-100 shadow-sm" style="min-height:400px;">
+      <h6 class="fw-bold mb-3"><i class="bi bi-graph-up me-1"></i> Daily Review Trend</h6>
+      <div class="d-flex justify-content-center align-items-center" style="height:320px;">
+        <canvas id="trendChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--  Mobile Friendly Style -->
+<style>
+@media (max-width: 768px) {
+  h4 {
+    font-size: 1.2rem;
+  }
+  .card h3 {
+    font-size: 1.4rem;
+  }
+  .card h6 {
+    font-size: 0.9rem;
+  }
+  .card {
+    border-radius: 10px;
+  }
+}
+</style>
+
+<!-- Chart.js + Data Load -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+async function loadAnalytics() {
+  try {
+    // Sentiment Distribution 
+    const res = await fetch('{{ url_for("api_analytics_sentiment") }}');
+    const data = await res.json();
+    let pos = data.find(x => x.label.toLowerCase().includes("posit"))?.value || 0;
+    let neg = data.find(x => x.label.toLowerCase().includes("negat"))?.value || 0;
+    let total = pos + neg;
+
+    document.getElementById("stat-positive").textContent = pos;
+    document.getElementById("stat-negative").textContent = neg;
+    document.getElementById("stat-total").textContent = total;
+    document.getElementById("stat-rating").textContent = 
+      total > 0 ? ((pos*5 + neg*2) / total).toFixed(1) : "0.0";
+
+    new Chart(document.getElementById('pieChart').getContext('2d'), {
+      type: 'doughnut',
+      data: {
+        labels: ["Positif", "Negatif"],
+        datasets: [{
+          data: [pos, neg],
+          backgroundColor: ['#28a745', '#dc3545'],
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom' },
+          tooltip: { callbacks: { 
+            label: (ctx) => `${ctx.label}: ${ctx.parsed} (${(ctx.parsed/total*100).toFixed(1)}%)`
+          }}
+        }
+      }
+    });
+
+    // Daily Trend 
+    const trendRes = await fetch('{{ url_for("api_analytics_trend") }}');
+    const trendData = await trendRes.json();
+    const labels = trendData.map(r => r.date);
+    const posVals = trendData.map(r => r.pos || 0);
+    const negVals = trendData.map(r => r.neg || 0);
+
+    new Chart(document.getElementById('trendChart').getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          { label: "Positif", data: posVals, backgroundColor: "#28a745" },
+          { label: "Negatif", data: negVals, backgroundColor: "#dc3545" }
+        ]
+      },
+      options: { 
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { position: 'bottom' } },
+        scales: { 
+          x: { stacked: true },
+          y: { stacked: true, beginAtZero: true, ticks: { stepSize: 1 } }
+        }
+      }
+    });
+  } catch (err) {
+    console.error("Gagal memuat data analytics:", err);
+  }
+}
+document.addEventListener("DOMContentLoaded", loadAnalytics);
+</script>
+
+{% endblock %}

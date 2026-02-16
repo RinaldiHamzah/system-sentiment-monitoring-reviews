@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <h3 class="mb-4"><i class="bi bi-people text-primary me-2"></i> Subscribers</h3>
+  <div class="row g-3 mb-4">
+    
+     <!-- Status Bot -->
+<div class="col-md-6">
+  <div class="card shadow-sm border-0 h-100 text-center">
+    <div class="card-body">
+      <h6 class="mb-3 fw-bold">
+        <i class="bi bi-robot me-1"></i> Tambah ID Telegram menggunakan Bot
+      </h6>
+
+      <!-- Status teks -->
+      <div id="botStatus" class="mb-3 fs-6 fw-semibold text-danger">
+        Bot Stopped
+      </div>
+
+      <!-- Tombol kontrol bot -->
+      <div class="d-flex justify-content-center gap-2 mb-3">
+        <button id="btnStart" class="btn btn-success" onclick="startBot()">
+          <i class="bi bi-play-fill me-1"></i> Start
+        </button>
+        <button id="btnStop" class="btn btn-danger" onclick="stopBot()" disabled>
+          <i class="bi bi-stop-fill me-1"></i> Stop
+        </button>
+      </div>
+
+      <!-- Garis pembatas -->
+      <hr class="my-3">
+
+      <!-- Informasi tambahan di bagian bawah -->
+      <p class="small text-muted mb-0">
+        💡 <b>Telegram ID</b> adalah nomor unik akun yang digunakan bot untuk mengirim notifikasi otomatis.  
+        Dapatkan ID dengan mengetik <b>/start</b> di bot Telegram.
+      </p>
+
+      <!-- 🔹 Tautan langsung ke Telegram Bot (dipindahkan ke bawah) -->
+      <div class="mt-3">
+        <a href="https://web.telegram.org/k/?swfix=1#@Update_Ulasan_bot" target="_blank" class="btn btn-outline-primary btn-sm">
+          <i class="bi bi-telegram me-1"></i> Buka monitoringbot
+        </a>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+    <!-- Tambah subscriber -->
+    <div class="col-md-6">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body">
+          <h6 class="mb-3 fw-bold"><i class="bi bi-person-plus me-1"></i> Tambah Telegram ID </h6>
+          <form method="post" action="{{ url_for('subscribers_add') }}">
+            <div class="input-group">
+              <input type="text" name="chat_id" class="form-control" placeholder="Telegram ID" required>
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-1"></i> Tambah
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Daftar Subscribers -->
+  <div class="card shadow-sm border-0">
+    <div class="card-body">
+      <h6 class="mb-3 fw-bold"><i class="bi bi-list-ul me-1"></i> Daftar Subscribers</h6>
+      <div class="table-responsive">
+        <table class="table align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>Telegram ID</th>
+              <th>Tanggal Subscribe</th>
+              <th>Tindakan</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in subs %}
+            <tr id="row-{{ s.chat_id }}">
+              <td>{{ s.chat_id }}</td>
+              <td>{{ "{} WIB".format(s.created_at.strftime("%d-%m-%Y %H:%M:%S")) if s.created_at else "-" }}</td>
+              <td>
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteSub('{{ s.chat_id }}')">
+                  <i class="bi bi-trash me-1"></i> Hapus
+                </button>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="3" class="text-center text-muted fst-italic">Belum ada subscriber</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function setLoading(button, loading=true) {
+  button.disabled = loading;
+  if (loading) {
+    button.dataset.oldText = button.innerHTML;
+    button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
+  } else {
+    button.innerHTML = button.dataset.oldText;
+  }
+}
+
+function startBot() {
+  let btn = document.getElementById("btnStart");
+  setLoading(btn, true);
+  fetch("/bot/start", { method: "POST" })
+    .then(r => r.json())
+    .then(d => {
+      if (d.ok) {
+        document.getElementById("botStatus").innerHTML = "Bot is Running ";
+        document.getElementById("botStatus").classList.replace("text-danger","text-success");
+        document.getElementById("btnStop").disabled = false;
+      } else {
+        alert("⚠️ " + d.msg);
+      }
+    })
+    .finally(() => setLoading(btn, false));
+}
+
+function stopBot() {
+  let btn = document.getElementById("btnStop");
+  setLoading(btn, true);
+  fetch("/bot/stop", { method: "POST" })
+    .then(r => r.json())
+    .then(d => {
+      if (d.ok) {
+        document.getElementById("botStatus").innerHTML = "Bot Stopped";
+        document.getElementById("botStatus").classList.replace("text-success","text-danger");
+        document.getElementById("btnStop").disabled = true;
+      } else {
+        alert("⚠️ " + d.msg);
+      }
+    })
+    .finally(() => setLoading(btn, false));
+}
+
+function deleteSub(chat_id) {
+  fetch(`/api/subscribers/${chat_id}`, { method: "DELETE" })
+    .then(r => r.json())
+    .then(d => {
+      if (d.ok) {
+        document.getElementById("row-" + chat_id).remove();
+      } else {
+        alert("❌ Gagal: " + d.msg);
+      }
+    });
+}
+</script>
+{% endblock %}

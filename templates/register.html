@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+  <div class="col-md-5 col-lg-4">
+    <div class="card border-0 shadow-lg rounded-4">
+      <div class="card-body p-4">
+        <!-- Header -->
+        <div class="text-center mb-4">
+          <div class="mb-2">
+            <i class="bi bi-person-plus-fill text-primary" style="font-size: 3rem;"></i>
+          </div>
+          <h4 class="fw-bold mb-1">Buat Akun Baru ✨</h4>
+          <p class="text-muted mb-0">Daftarkan diri Anda untuk mulai menggunakan Review Monotoring</p>
+        </div>
+        <!-- Form Register -->
+        <form method="post" action="{{ url_for('register_post') }}">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Username</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light"><i class="bi bi-person"></i></span>
+              <input name="username" class="form-control" placeholder="Masukkan username" required>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Password</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light"><i class="bi bi-lock"></i></span>
+              <input name="password" type="password" class="form-control" placeholder="Masukkan password" required>
+            </div>
+          </div>
+          <!-- Tombol dan navigasi -->
+          <div class="d-flex justify-content-between align-items-center mt-4">
+            <button class="btn btn-primary w-50 shadow-sm">
+              <i class="bi bi-person-check me-1"></i> Daftar
+            </button>
+            <a href="{{ url_for('login') }}" class="text-decoration-none small">Kembali ke login</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ✨ Style khusus untuk halaman register -->
+<style>
+.card {
+  background-color: var(--bs-body-bg);
+  transition: all 0.3s ease-in-out;
+}
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Dark mode adjustment */
+[data-bs-theme="dark"] .card {
+  background-color: #1e1e2f;
+  color: #e4e4e4;
+}
+[data-bs-theme="dark"] .input-group-text {
+  background-color: #2c2c3a;
+  color: #ddd;
+}
+
+/* Button hover effect */
+.btn-success {
+  transition: background-color 0.3s, transform 0.2s;
+}
+.btn-success:hover {
+  background-color: #157347;
+  transform: scale(1.02);
+}
+
+/* Responsiveness tweaks */
+@media (max-width: 576px) {
+  h4 { font-size: 1.25rem; }
+  .card-body { padding: 1.25rem !important; }
+}
+</style>
+
+{% endblock %}

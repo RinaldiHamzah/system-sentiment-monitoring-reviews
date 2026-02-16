@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <h4 class="mb-0"><i class="bi bi-chat-square-text me-1 text-primary me-2"></i> Histories</h4>
+  <button class="btn btn-sm btn-outline-primary d-none d-md-inline-flex" onclick="openExportModal()">
+    <i class="bi bi-download me-1"></i> Export
+  </button>
+</div>
+
+<!-- 🔍 Search -->
+<div class="row mb-3">
+  <div class="col-md-6">
+    <input id="searchBox" type="text" class="form-control" placeholder="Cari user, text review, atau sentiment...">
+  </div>
+</div>
+
+<!-- 📋 Table Scrollable -->
+<div class="table-responsive shadow-sm rounded" style="max-height: 70vh; overflow-y: auto;">
+  <table class="table table-striped table-hover align-middle mb-0">
+    <thead class="table-light sticky-top">
+      <tr>
+        <th style="width:50px;">No</th>
+        <th style="width:160px;">Waktu</th>
+        <th style="width:150px;">User</th>
+        <th style="width:80px;">Rating</th>
+        <th style="min-width:300px;">Text</th>
+        <th style="width:120px;">Naive Bayes</th>
+        <th style="width:120px;">SVM</th>
+      </tr>
+    </thead>
+    <tbody id="reviewTableBody">
+      {% for r in rows[:300] %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td><small class="text-muted">{{ r.review_date }} WIB</small></td>
+        <td><i class="bi bi-person-circle text-muted me-1"></i>{{ r.user_name }}</td>
+        <td><span class="badge bg-warning text-dark">{{ r.rating }} ★</span></td>
+        <td>
+          <span class="review-text d-block text-truncate"
+                style="max-width:350px; cursor:pointer;"
+                onclick="this.classList.toggle('text-truncate')">
+            {{ r.review_text }}
+          </span>
+        </td>
+        <td>
+          <span class="badge {% if r.sentiment_nb == 'POSITIF' %}bg-success{% else %}bg-danger{% endif %}">
+            {{ r.sentiment_nb }}
+          </span>
+        </td>
+        <td>
+          <span class="badge {% if r.sentiment_svm == 'POSITIF' %}bg-success{% else %}bg-danger{% endif %}">
+            {{ r.sentiment_svm }}
+          </span>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" class="text-center text-muted fst-italic">Tidak ada review.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- 🪶 Scroll hint -->
+<div class="scroll-hint text-center small text-muted mt-1 d-md-none">
+  <i class="bi bi-arrow-left-right me-1"></i> Geser ke samping untuk melihat semua kolom
+</div>
+
+<!-- Floating Export Button (Mobile) -->
+<button class="btn btn-primary btn-lg d-md-none floating-btn" onclick="openExportModal()">
+  <i class="bi bi-download"></i>
+</button>
+
+<!-- 📦 Modal Export -->
+<div class="modal fade" id="exportModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-download me-1"></i> Export Reviews</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="exportForm" class="row g-3">
+          <div class="col-md-6 col-12">
+            <label class="form-label">Format</label>
+            <select id="exportFormat" class="form-select">
+              <option value="csv">CSV</option>
+              <option value="xls">XLSX</option>
+            </select>
+          </div>
+          <div class="col-md-6 col-12">
+            <label class="form-label">Jumlah Review</label>
+            <input type="number" id="exportLimit" class="form-control" value="100" min="1">
+          </div>
+          <div class="col-md-6 col-12">
+            <label class="form-label">Filter Sentiment</label>
+            <select id="exportFilter" class="form-select">
+              <option value="all">Semua</option>
+              <option value="positif">Positif</option>
+              <option value="negatif">Negatif</option>
+            </select>
+          </div>
+          <div class="col-md-6 col-12">
+            <label class="form-label">Filter Rating</label>
+            <select id="exportRating" class="form-select">
+              <option value="all">Semua</option>
+              <option value="1">1 ★</option>
+              <option value="2">2 ★</option>
+              <option value="3">3 ★</option>
+              <option value="4">4 ★</option>
+              <option value="5">5 ★</option>
+            </select>
+          </div>
+          <div class="col-md-6 col-12">
+            <label class="form-label">Filter Model</label>
+            <select id="exportModel" class="form-select">
+              <option value="all">Semua</option>
+              <option value="nb_pos">Naive Bayes - Positif</option>
+              <option value="nb_neg">Naive Bayes - Negatif</option>
+              <option value="svm_pos">SVM - Positif</option>
+              <option value="svm_neg">SVM - Negatif</option>
+            </select>
+          </div>
+          <div class="col-md-6 col-12">
+            <label class="form-label">Filter Tanggal</label>
+            <select id="exportDateFilter" class="form-select" onchange="toggleDateRange(this.value)">
+              <option value="all">Semua</option>
+              <option value="month">Bulan ini</option>
+              <option value="range">Range Tanggal</option>
+            </select>
+          </div>
+          <div class="col-md-6 col-12 d-none" id="dateStartGroup">
+            <label class="form-label">Dari</label>
+            <input type="date" id="exportDateStart" class="form-control">
+          </div>
+          <div class="col-md-6 col-12 d-none" id="dateEndGroup">
+            <label class="form-label">Sampai</label>
+            <input type="date" id="exportDateEnd" class="form-control">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+        <button class="btn btn-primary" onclick="submitExport()">Download</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.table-responsive::-webkit-scrollbar { width: 6px; }
+.table-responsive::-webkit-scrollbar-thumb {
+  background-color: rgba(150,150,150,0.4);
+  border-radius: 3px;
+}
+@media (max-width: 768px) {
+  table { font-size: 0.85rem; }
+  th, td { padding: 0.4rem 0.5rem !important; }
+  .review-text { max-width: 180px !important; }
+}
+.floating-btn {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  border-radius: 50%;
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.25);
+  z-index: 1050;
+}
+</style>
+
+<script>
+// 🧭 Modal Export
+function openExportModal() {
+  new bootstrap.Modal(document.getElementById('exportModal')).show();
+}
+function toggleDateRange(value) {
+  document.getElementById("dateStartGroup").classList.toggle("d-none", value !== "range");
+  document.getElementById("dateEndGroup").classList.toggle("d-none", value !== "range");
+}
+function submitExport() {
+  const fmt = exportFormat.value;
+  const limit = exportLimit.value;
+  const filter = exportFilter.value;
+  const rating = exportRating.value;
+  const model = exportModel.value;
+  const dateFilter = exportDateFilter.value;
+  const start = exportDateStart.value;
+  const end = exportDateEnd.value;
+  let url = `/reviews/export/${fmt}?limit=${limit}&filter=${filter}&rating=${rating}&model=${model}&date=${dateFilter}&start=${start}&end=${end}`;
+  window.location.href = url;
+}
+
+// 🔍 Search
+document.addEventListener("DOMContentLoaded", () => {
+  const searchBox = document.getElementById("searchBox");
+  const tbody = document.getElementById("reviewTableBody");
+  searchBox.addEventListener("input", () => {
+    const term = searchBox.value.trim().toLowerCase();
+    tbody.querySelectorAll("tr").forEach(row => {
+      const text = row.textContent.toLowerCase();
+      row.style.display = text.includes(term) ? "" : "none";
+    });
+  });
+});
+</script>
+{% endblock %}

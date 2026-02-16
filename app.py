@@ -301,14 +301,12 @@ def forgot_password_post():
     # Nanti di sini bisa kirim email reset link, tapi untuk demo langsung redirect
     return redirect(url_for("reset_password", username=username))
 
-
 @app.get("/reset-password/<username>")
 def reset_password(username):
     user = db.get_user_by_username(username)
     if not user:
         return redirect(url_for("forgot_password"))
     return render_template("reset_password.html", username=username)
-
 
 @app.post("/reset-password/<username>")
 def reset_password_post(username):

@@ -48,8 +48,8 @@ def normalize_sentiment(label, rating=None):
 
 # Pipeline 
 def run_pipeline():
-    serpapi_key = "3bea6306886c2e5dea2281bc68bca9cd9908b182974a843f4cf9798fe1d3eb01"
-    data_id = "0x2e7a59c6e514a5a3:0xbeca960436f8fe88"
+    serpapi_key = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    data_id = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 
     try:
         reviews = scrape_latest_review(data_id, serpapi_key)

@@ -36,11 +36,8 @@
           <input type="number" id="sched-interval" class="form-control text-center" value="15" min="1">
           <span class="input-group-text">Menit</span>
         </div>
-        <button id="btn-start-sched" class="btn btn-success btn-sm sched-btn">
+        <button id="btn-toggle-sched" class="btn btn-success btn-sm sched-btn" data-running="false">
           <i class="bi bi-play-fill me-1"></i> Start
-        </button>
-        <button id="btn-stop-sched" class="btn btn-danger btn-sm sched-btn" disabled>
-          <i class="bi bi-stop-fill me-1"></i> Stop
         </button>
         <span id="sched-countdown-badge" class="badge bg-secondary px-3 py-2 ms-auto">
           <i class="bi bi-hourglass-split me-1"></i>00:00
@@ -180,11 +177,11 @@
             <canvas id="weeklyChart" height="120"></canvas>
             <p class="small mt-3 mb-0">
               {% if weekly.this_week > weekly.last_week %}
-                <span class="text-success fw-semibold"><i class="bi bi-graph-up-arrow me-1"></i>Review meningkat dibanding minggu lalu</span>
+                <span class="text-dark fw-semibold"><i class="bi bi-graph-up-arrow me-1"></i>Review meningkat dibanding minggu lalu</span>
               {% elif weekly.this_week < weekly.last_week %}
-                <span class="text-success fw-semibold"><i class="bi bi-graph-down-arrow me-1"></i>Review menurun dibanding minggu lalu</span>
+                <span class="text-dark fw-semibold"><i class="bi bi-graph-down-arrow me-1"></i>Review menurun dibanding minggu lalu</span>
               {% else %}
-                <span class="text-success fw-semibold"><i class="bi bi-dash-lg me-1"></i>Review stabil dibanding minggu lalu</span>
+                <span class="text-dark fw-semibold"><i class="bi bi-dash-lg me-1"></i>Review stabil dibanding minggu lalu</span>
               {% endif %}
             </p>
           </div>
@@ -405,8 +402,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const countdownBadge = document.getElementById('sched-countdown-badge');
   const inputEl = document.getElementById('sched-interval');
-  const btnStart = document.getElementById('btn-start-sched');
-  const btnStop = document.getElementById('btn-stop-sched');
+  const btnToggle = document.getElementById('btn-toggle-sched');
   let countdownTimer = null;
   let remainingSeconds = 0;
 
@@ -438,21 +434,33 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function setRunningUI(running, minutes = null, remaining = null) {
+    btnToggle.dataset.running = running ? 'true' : 'false';
     if (running) {
       inputEl.disabled = true;
-      btnStart.disabled = true;
-      btnStop.disabled = false;
+      btnToggle.classList.remove('btn-success');
+      btnToggle.classList.add('btn-danger');
+      btnToggle.innerHTML = '<i class="bi bi-stop-fill me-1"></i> Stop';
       startCountdown(remaining ? remaining : (minutes * 60));
     } else {
       inputEl.disabled = false;
-      btnStart.disabled = false;
-      btnStop.disabled = true;
+      btnToggle.classList.remove('btn-danger');
+      btnToggle.classList.add('btn-success');
+      btnToggle.innerHTML = '<i class="bi bi-play-fill me-1"></i> Start';
       clearInterval(countdownTimer);
       countdownBadge.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>00:00';
     }
   }
 
-  btnStart.addEventListener('click', async () => {
+  btnToggle.addEventListener('click', async () => {
+    const isRunning = btnToggle.dataset.running === 'true';
+    if (isRunning) {
+      const res = await fetch('{{ url_for("api_sched_stop") }}', { method: 'POST' });
+      const d = await res.json();
+      if (d.ok) setRunningUI(false);
+      else alert("Gagal menghentikan scheduler");
+      return;
+    }
+
     const minutes = parseInt(inputEl.value) || 15;
     const res = await fetch('{{ url_for("api_sched_start") }}', {
       method: 'POST',
@@ -462,13 +470,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const d = await res.json();
     if (d.ok) setRunningUI(true, minutes, d.remaining || null);
     else alert("Gagal memulai scheduler");
-  });
-
-  btnStop.addEventListener('click', async () => {
-    const res = await fetch('{{ url_for("api_sched_stop") }}', { method: 'POST' });
-    const d = await res.json();
-    if (d.ok) setRunningUI(false);
-    else alert("Gagal menghentikan scheduler");
   });
 
   async function getSchedulerStatus() {

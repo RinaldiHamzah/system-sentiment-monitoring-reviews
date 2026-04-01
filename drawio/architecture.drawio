@@ -1,34 +1,46 @@
 ﻿<mxfile host="65bd71144e">
     <diagram id="arch1" name="System Architecture">
-        <mxGraphModel dx="777" dy="444" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+        <mxGraphModel dx="1220" dy="447" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
-                <mxCell id="c_browser" value="User/Admin\nWeb Browser" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
-                    <mxGeometry x="40" y="120" width="160" height="80" as="geometry"/>
+                <mxCell id="c_browser" value="User / Admin\nWeb Browser" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="120" width="160" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="frontend" value="Frontend\ntemplates/ + static/" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+                    <mxGeometry x="230" y="120" width="180" height="80" as="geometry"/>
                 </mxCell>
                 <mxCell id="c_telegram" value="Telegram Client" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#43a047;" parent="1" vertex="1">
-                    <mxGeometry x="50" y="400" width="160" height="80" as="geometry"/>
+                    <mxGeometry x="478" y="720" width="160" height="80" as="geometry"/>
                 </mxCell>
-                <mxCell id="app" value="Flask Web App\n(app.py)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=2;" parent="1" vertex="1">
-                    <mxGeometry x="320" y="100" width="220" height="120" as="geometry"/>
+                <mxCell id="app" value="Flask Web App\napp.py\nRoute, Auth, Session,\nAPI, Scheduler Control" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="450" y="90" width="220" height="140" as="geometry"/>
                 </mxCell>
-                <mxCell id="scheduler" value="Scheduler\n(APScheduler)" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="320" y="270" width="220" height="80" as="geometry"/>
+                <mxCell id="scheduler" value="Scheduler\nAPScheduler" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="450" y="270" width="220" height="80" as="geometry"/>
                 </mxCell>
-                <mxCell id="pipeline" value="Pipeline\n(scraper, model, notifier)" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="320" y="400" width="220" height="100" as="geometry"/>
+                <mxCell id="2" value="" style="edgeStyle=none;html=1;" edge="1" parent="1" source="pipeline" target="tg_api">
+                    <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="db" value="MySQL/MariaDB" style="shape=database;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="620" y="115" width="180" height="90" as="geometry"/>
+                <mxCell id="pipeline" value="Pipeline Modules\nscraper.py\nmodel_predict.py\nmysql_connector.py\nplace_id.py\nnotif_telegram.py" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="430" y="390" width="260" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="db" value="MySQL / MariaDB\nusers, hotels,\nhotel_reviews,\nsentiment_reviews,\ntelegram_users, notifications" style="shape=database;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="750" y="90" width="210" height="130" as="geometry"/>
                 </mxCell>
                 <mxCell id="serp" value="Google Maps / SerpAPI" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1f5fe;strokeColor=#039be5;" parent="1" vertex="1">
-                    <mxGeometry x="630" y="400" width="200" height="80" as="geometry"/>
+                    <mxGeometry x="885" y="414" width="200" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="model_store" value="Model ML\nNaive Bayes, SVM,\nTF-IDF Vectorizer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+                    <mxGeometry x="880" y="320" width="210" height="90" as="geometry"/>
                 </mxCell>
                 <mxCell id="tg_api" value="Telegram Bot API" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#43a047;" parent="1" vertex="1">
-                    <mxGeometry x="30" y="240" width="200" height="80" as="geometry"/>
+                    <mxGeometry x="460" y="600" width="200" height="80" as="geometry"/>
                 </mxCell>
-                <mxCell id="e1" style="endArrow=block;html=1;" parent="1" source="c_browser" target="app" edge="1">
+                <mxCell id="e1" style="endArrow=block;html=1;" parent="1" source="c_browser" target="frontend" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e1b" style="endArrow=block;html=1;" edge="1" parent="1" source="frontend" target="app">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="e2" style="endArrow=block;html=1;" parent="1" source="app" target="db" edge="1">
@@ -43,12 +55,8 @@
                 <mxCell id="e5" style="endArrow=block;html=1;" parent="1" source="pipeline" target="serp" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="e6" style="endArrow=block;html=1;" parent="1" source="pipeline" target="tg_api" edge="1">
-                    <mxGeometry relative="1" as="geometry">
-                        <Array as="points">
-                            <mxPoint x="200" y="360"/>
-                        </Array>
-                    </mxGeometry>
+                <mxCell id="e5b" style="endArrow=block;html=1;" edge="1" parent="1" source="pipeline" target="model_store">
+                    <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="e7" style="endArrow=block;html=1;" parent="1" source="tg_api" target="c_telegram" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
@@ -56,7 +64,7 @@
                 <mxCell id="e8" style="endArrow=block;html=1;" parent="1" source="pipeline" target="db" edge="1">
                     <mxGeometry relative="1" as="geometry">
                         <Array as="points">
-                            <mxPoint x="710" y="320"/>
+                            <mxPoint x="860" y="340"/>
                         </Array>
                     </mxGeometry>
                 </mxCell>

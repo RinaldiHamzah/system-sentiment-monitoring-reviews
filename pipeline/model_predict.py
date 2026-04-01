@@ -1,67 +1,67 @@
-# # # pipeline/model_predict.py
-# import joblib
-
-# class ModelPredict:
-#     def __init__(self):
-#         self.__nb_model = joblib.load("model_ml/naive_bayes_model.pkl")
-#         self.__svm_model = joblib.load("model_ml/SVM_model.pkl")
-#         self.__vectorizer = joblib.load("model_ml/vectorizer.pkl")
-
-#     def __vectorize(self, text):
-#          return self.__vectorizer.transform([text])
-
-#     def __label(self, pred):
-#          return "POSITIF" if pred[0] == 1 else "NEGATIF"
-
-#     def predict_nb(self, text):
-#          vec = self.__vectorize(text)
-#          return self.__label(self.__nb_model.predict(vec))
-
-#     def predict_svm(self, text):
-#          vec = self.__vectorize(text)
-#          return self.__label(self.__svm_model.predict(vec))
-
-##Model Machine
-from pathlib import Path
+# # pipeline/model_predict.py
 import joblib
 
 class ModelPredict:
     def __init__(self):
-        base_dir = Path(__file__).resolve().parent.parent
-        model_dir = self.__resolve_model_dir(base_dir)
-
-        self.__nb_model = joblib.load(model_dir / "naive_bayes_model.pkl")
-        self.__svm_model = joblib.load(model_dir / "SVM_model.pkl")
-        self.__vectorizer = joblib.load(model_dir / "vectorizer.pkl")
-
-    def __resolve_model_dir(self, base_dir):
-        candidate_dirs = [
-            base_dir / "analisis" / "model_machine",
-            base_dir / "model_machine",
-        ]
-
-        for candidate in candidate_dirs:
-            if (candidate / "naive_bayes_model.pkl").exists():
-                return candidate
-
-        raise FileNotFoundError(
-            "Model files tidak ditemukan. Cek folder model di model_ml, "
-            "analisis/model_machine, atau model_machine."
-        )
+        self.__nb_model = joblib.load("model_ml/naive_bayes_model.pkl")
+        self.__svm_model = joblib.load("model_ml/SVM_model.pkl")
+        self.__vectorizer = joblib.load("model_ml/vectorizer.pkl")
 
     def __vectorize(self, text):
-        return self.__vectorizer.transform([text])
+         return self.__vectorizer.transform([text])
 
     def __label(self, pred):
-        return "POSITIF" if pred[0] == 1 else "NEGATIF"
+         return "POSITIF" if pred[0] == 1 else "NEGATIF"
 
     def predict_nb(self, text):
-        vec = self.__vectorize(text)
-        return self.__label(self.__nb_model.predict(vec))
+         vec = self.__vectorize(text)
+         return self.__label(self.__nb_model.predict(vec))
 
     def predict_svm(self, text):
-        vec = self.__vectorize(text)
-        return self.__label(self.__svm_model.predict(vec))
+         vec = self.__vectorize(text)
+         return self.__label(self.__svm_model.predict(vec))
+
+# ##Model Machine
+# from pathlib import Path
+# import joblib
+
+# class ModelPredict:
+#     def __init__(self):
+#         base_dir = Path(__file__).resolve().parent.parent
+#         model_dir = self.__resolve_model_dir(base_dir)
+
+#         self.__nb_model = joblib.load(model_dir / "naive_bayes_model.pkl")
+#         self.__svm_model = joblib.load(model_dir / "SVM_model.pkl")
+#         self.__vectorizer = joblib.load(model_dir / "vectorizer.pkl")
+
+#     def __resolve_model_dir(self, base_dir):
+#         candidate_dirs = [
+#             base_dir / "analisis" / "model_machine",
+#             base_dir / "model_machine",
+#         ]
+
+#         for candidate in candidate_dirs:
+#             if (candidate / "naive_bayes_model.pkl").exists():
+#                 return candidate
+
+#         raise FileNotFoundError(
+#             "Model files tidak ditemukan. Cek folder model di model_ml, "
+#             "analisis/model_machine, atau model_machine."
+#         )
+
+#     def __vectorize(self, text):
+#         return self.__vectorizer.transform([text])
+
+#     def __label(self, pred):
+#         return "POSITIF" if pred[0] == 1 else "NEGATIF"
+
+#     def predict_nb(self, text):
+#         vec = self.__vectorize(text)
+#         return self.__label(self.__nb_model.predict(vec))
+
+#     def predict_svm(self, text):
+#         vec = self.__vectorize(text)
+#         return self.__label(self.__svm_model.predict(vec))
 
 # ## Model SMOTE
 # from pathlib import Path

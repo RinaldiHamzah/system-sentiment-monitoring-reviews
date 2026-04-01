@@ -1,49 +1,308 @@
-﻿<mxfile host="65bd71144e">
-    <diagram id="erd1" name="ERD">
-        <mxGraphModel dx="1088" dy="622" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+<mxfile host="65bd71144e">
+    <diagram id="erd1" name="ERD Chen">
+        <mxGraphModel dx="1830" dy="670" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="1200" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
-                <mxCell id="t_hotels" value="hotels\n- hotel_id (PK)\n- manajemen_hotel_id (UQ)\n- hotel_name\n- address\n- place_id (UQ)\n- created_at\n- scrape_interval_minutes\n- last_scrape_at\n- is_active" style="shape=table;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="60" y="80" width="260" height="220" as="geometry"/>
+                <mxCell id="e_hotels" value="hotels" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="755" y="320" width="130" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="t_users" value="users\n- user_id (PK)\n- username (UQ)\n- password\n- role\n- created_at\n- hotel_id (FK)" style="shape=table;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="760" y="110" width="240" height="170" as="geometry"/>
+                <mxCell id="e_users" value="users" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="760" y="80" width="120" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="t_reviews" value="hotel_reviews\n- review_id (PK)\n- hotel_id (FK)\n- user_name\n- review_text\n- rating\n- review_date\n- source\n- created_at" style="shape=table;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="380" y="360" width="260" height="200" as="geometry"/>
+                <mxCell id="e_reviews" value="hotel_reviews" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="1103" y="320" width="150" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="t_sentiment" value="sentiment_reviews\n- sentiment_id (PK)\n- review_id (FK)\n- hotel_id (FK)\n- user_name\n- review_text\n- rating\n- review_date\n- sentiment_nb\n- sentiment_svm\n- source\n- created_at" style="shape=table;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="760" y="310" width="300" height="240" as="geometry"/>
+                <mxCell id="e_sentiment" value="sentiment_reviews" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="1426" y="320" width="170" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="t_telegram" value="telegram_users\n- chat_id (PK)\n- hotel_id (PK, FK)\n- subscribed\n- created_at" style="shape=table;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="60" y="360" width="240" height="150" as="geometry"/>
+                <mxCell id="e_telegram" value="telegram_users" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="748" y="720" width="150" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="t_notif" value="notifications\n- notif_id (PK)\n- review_id (FK, NULL)\n- chat_id (FK)\n- hotel_id (FK)\n- status\n- created_at" style="shape=table;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="60" y="600" width="260" height="170" as="geometry"/>
+                <mxCell id="e_notifications" value="notifications" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="1162.5" y="720" width="150" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="r1" value="1..N" style="endArrow=none;html=1;" edge="1" parent="1" source="t_hotels" target="t_users">
+                <mxCell id="r_mengelola" value="mengelola" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="775" y="195" width="90" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="r_memiliki_review" value="memiliki" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="960" y="320" width="90" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="r_dianalisis" value="dianalisis" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="1290" y="320" width="100" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="r_memiliki_sub" value="memiliki" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="780" y="590" width="90" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="r_menerima" value="menerima" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="960" y="720" width="90" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="r_terkait_notif" value="terkait" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="974" y="510" width="90" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="a_hotels_id" value="hotel_id" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="600" y="230" width="95" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="a_hotels_name" value="hotel_name" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="560" y="300" width="110" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="a_hotels_addr" value="address" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="570" y="360" width="100" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="a_hotels_place" value="place_id" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="580" y="420" width="95" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="a_hotels_interval" value="scrape_interval" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="684" y="450" width="120" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="a_hotels_active" value="is_active" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="835" y="455" width="95" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="a_users_id" value="user_id" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="640" y="80" width="90" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="a_users_username" value="username" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="695" y="6" width="100" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="a_users_password" value="password" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="810" width="100" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="a_users_role" value="role" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="920" y="10" width="85" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="a_users_created" value="created_at" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="926" y="116" width="100" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="a_reviews_id" value="review_id" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="1084" y="221" width="95" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="a_reviews_user" value="user_name" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="1190" y="220" width="100" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="a_reviews_rating" value="rating" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="1295" y="230" width="85" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="a_reviews_text" value="review_text" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="1090" y="410" width="110" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="a_reviews_date" value="review_date" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="1205" y="410" width="110" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="a_reviews_source" value="source" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="1320" y="410" width="90" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="a_sent_id" value="sentiment_id" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="1620" y="210" width="110" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="a_sent_nb" value="sentiment_nb" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="1620" y="280" width="120" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="a_sent_svm" value="sentiment_svm" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="1610" y="350" width="130" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="a_sent_source" value="source" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="1625" y="420" width="90" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="a_sent_created" value="created_at" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="1615" y="490" width="105" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="a_tg_chat" value="chat_id" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="610" y="790" width="90" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="a_tg_subscribed" value="subscribed" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="710" y="830" width="105" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="a_tg_created" value="created_at" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="840" y="830" width="105" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="a_notif_id" value="notif_id" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="1090" y="820" width="90" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="a_notif_review" value="review_id" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="1190" y="820" width="95" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="a_notif_status" value="status" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="1290" y="820" width="85" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="a_notif_created" value="created_at" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="1380" y="820" width="105" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="l1" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="e_users" target="r_mengelola">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="r2" value="1..N" style="endArrow=none;html=1;" edge="1" parent="1" source="t_hotels" target="t_reviews">
+                <mxCell id="l2" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="r_mengelola" target="e_hotels">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="r3" value="1..N" style="endArrow=none;html=1;" edge="1" parent="1" source="t_hotels" target="t_sentiment">
+                <mxCell id="c1a" value="1..N" style="text;html=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+                    <mxGeometry x="808" y="150" width="30" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="c1b" value="1..N" style="text;html=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+                    <mxGeometry x="808" y="265" width="30" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="l3" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="e_hotels" target="r_memiliki_review">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="r4" value="1..N" style="endArrow=none;html=1;" edge="1" parent="1" source="t_hotels" target="t_telegram">
+                <mxCell id="l4" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="r_memiliki_review" target="e_reviews">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="r6" value="1..N" style="endArrow=none;html=1;" edge="1" parent="1" target="t_sentiment">
-                    <mxGeometry relative="1" as="geometry">
-                        <mxPoint x="640" y="430" as="sourcePoint"/>
+                <mxCell id="c2a" value="1..N" style="text;html=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+                    <mxGeometry x="905" y="330" width="30" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="c2b" value="1..N" style="text;html=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+                    <mxGeometry x="1070" y="330" width="30" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="l5" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="e_reviews" target="r_dianalisis">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="l6" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="r_dianalisis" target="e_sentiment">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="c3a" value="1..N" style="text;html=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+                    <mxGeometry x="1265" y="330" width="30" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="c3b" value="1..N" style="text;html=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+                    <mxGeometry x="1399" y="329" width="30" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="l7" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="e_hotels" target="r_memiliki_sub">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="l8" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="r_memiliki_sub" target="e_telegram">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="c4a" value="1..N" style="text;html=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+                    <mxGeometry x="812" y="540" width="30" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="c4b" value="1..N" style="text;html=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+                    <mxGeometry x="813" y="690" width="30" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="l9" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="e_telegram" target="r_menerima">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="l10" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="r_menerima" target="e_notifications">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="c5a" value="1..N" style="text;html=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+                    <mxGeometry x="915" y="731" width="30" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="c5b" value="1..N" style="text;html=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+                    <mxGeometry x="1070" y="731" width="30" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="l11" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="e_hotels" target="r_terkait_notif">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="l12" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="r_terkait_notif" target="e_notifications">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="c6a" value="1..N" style="text;html=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+                    <mxGeometry x="944" y="465" width="30" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="c6b" value="1..N" style="text;html=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+                    <mxGeometry x="1100" y="615" width="30" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="ha1" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="e_hotels" target="a_hotels_id">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ha2" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="e_hotels" target="a_hotels_name">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ha3" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="e_hotels" target="a_hotels_addr">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ha4" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="e_hotels" target="a_hotels_place">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ha5" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="e_hotels" target="a_hotels_interval">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ha6" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="e_hotels" target="a_hotels_active">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ua1" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="e_users" target="a_users_id">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ua2" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="e_users" target="a_users_username">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ua3" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="e_users" target="a_users_password">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ua4" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="e_users" target="a_users_role">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ua5" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="e_users" target="a_users_created">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ra1" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="e_reviews" target="a_reviews_id">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ra2" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="e_reviews" target="a_reviews_user">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ra3" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="e_reviews" target="a_reviews_rating">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ra4" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="e_reviews" target="a_reviews_text">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ra5" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="e_reviews" target="a_reviews_date">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ra6" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="e_reviews" target="a_reviews_source">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="sa1" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="e_sentiment" target="a_sent_id">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="sa2" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="e_sentiment" target="a_sent_nb">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="sa3" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="e_sentiment" target="a_sent_svm">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="sa4" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="e_sentiment" target="a_sent_source">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="sa5" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="e_sentiment" target="a_sent_created">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ta1" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="e_telegram" target="a_tg_chat">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ta2" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="e_telegram" target="a_tg_subscribed">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ta3" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="e_telegram" target="a_tg_created">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="na1" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="e_notifications" target="a_notif_id">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="na2" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="e_notifications" target="a_notif_review">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="na3" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="e_notifications" target="a_notif_status">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="na4" value="" style="endArrow=none;html=1;" edge="1" parent="1" source="e_notifications" target="a_notif_created">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="9" value="" style="endArrow=none;dashed=1;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.435;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="e_notifications" target="e_sentiment">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="1320" y="730" as="sourcePoint"/>
+                        <mxPoint x="1490" y="460" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="1500" y="750"/>
+                        </Array>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="r7" value="1..0..N" style="dashed=1;endArrow=none;html=1;" edge="1" parent="1" source="t_reviews" target="t_notif">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="r8" value="1..N" style="endArrow=none;html=1;" edge="1" parent="1" source="t_telegram" target="t_notif">
-                    <mxGeometry relative="1" as="geometry"/>
+                <mxCell id="10" value="" style="endArrow=none;dashed=1;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="880" y="95" as="sourcePoint"/>
+                        <mxPoint x="1501" y="320" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="1500" y="100"/>
+                        </Array>
+                    </mxGeometry>
                 </mxCell>
             </root>
         </mxGraphModel>

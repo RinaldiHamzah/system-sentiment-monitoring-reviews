@@ -1,0 +1,82 @@
+﻿<mxfile host="65bd71144e">
+    <diagram id="arch_user_hotel" name="Arsitektur dan Alur User Hotel">
+        <mxGraphModel dx="719" dy="335" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="title1" value="4.3 Perancangan Arsitektur Sistem (Fokus User Hotel)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=18;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="20" width="620" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="user" value="User Hotel" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="80" width="140" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="presentation" value="Lapisan Presentasi\ntemplates/ &amp; static/\nDashboard, Reviews, Analytics" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+                    <mxGeometry x="230" y="70" width="240" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="application" value="Lapisan Aplikasi\napp.py\nRoute halaman, API, autentikasi, scheduler, kontrol bot" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
+                    <mxGeometry x="510" y="70" width="300" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="pipeline" value="Lapisan Pipeline\npipeline/\nScraper, model inferensi, konektor DB, notifikasi" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="1" vertex="1">
+                    <mxGeometry x="850" y="70" width="290" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="data" value="Lapisan Data\nMySQL/MariaDB (schema.sql)\nTabel: hotels, users, reviews, sentiment, telegram, notifications" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="1" vertex="1">
+                    <mxGeometry x="1180" y="70" width="330" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="serpapi" value="SerpAPI\nGoogle Maps Reviews" style="shape=cloud;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
+                    <mxGeometry x="850" y="190" width="180" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="telegram" value="Telegram Bot API\nNotifikasi ke subscriber" style="shape=cloud;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
+                    <mxGeometry x="1050" y="200" width="200" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="e1" style="endArrow=block;html=1;" parent="1" source="user" target="presentation" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e2" style="endArrow=block;html=1;" parent="1" source="presentation" target="application" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e3" style="endArrow=block;html=1;" parent="1" source="application" target="pipeline" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e4" style="endArrow=block;html=1;" parent="1" source="pipeline" target="data" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e5" value="ambil ulasan" style="endArrow=block;html=1;" parent="1" source="pipeline" target="serpapi" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e6" value="kirim notifikasi" style="endArrow=block;html=1;" parent="1" source="pipeline" target="telegram" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="title2" value="Alur Utama Sistem" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=18;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="340" width="260" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="f1" value="1. User login ke akun\nhotel miliknya" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="390" width="200" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="f2" value="2. Trigger scraping\nmanual / otomatis" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+                    <mxGeometry x="300" y="390" width="200" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="f3" value="3. Proses review baru:\nnormalisasi waktu, deduplikasi,\nklasifikasi sentimen" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
+                    <mxGeometry x="560" y="390" width="240" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="f4" value="4. Simpan hasil ke database\ndan tampilkan di dashboard" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="1" vertex="1">
+                    <mxGeometry x="860" y="390" width="220" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="f5" value="5. Kirim notifikasi Telegram\nke subscriber hotel terkait" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="1" vertex="1">
+                    <mxGeometry x="1140" y="390" width="240" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="fe1" style="endArrow=block;html=1;" parent="1" source="f1" target="f2" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="fe2" style="endArrow=block;html=1;" parent="1" source="f2" target="f3" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="fe3" style="endArrow=block;html=1;" parent="1" source="f3" target="f4" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="fe4" style="endArrow=block;html=1;" parent="1" source="f4" target="f5" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

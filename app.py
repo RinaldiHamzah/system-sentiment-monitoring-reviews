@@ -361,7 +361,7 @@ def _admin_action_response(ok, message, table, status_code=200, payload=None):
 def login():
     if "uid" in session:
         return redirect(url_for("dashboard"))
-    return render_template("login.html")
+    return render_template("login.html", auth_mode="login")
 
 @app.post("/login")
 def login_post():
@@ -369,13 +369,13 @@ def login_post():
     password = request.form.get("password","")
     user = db.get_user_by_username(username)
     if not user or not check_password_hash(user["password"], password):
-        return render_template("login.html", error="Username atau password salah")
+        return render_template("login.html", auth_mode="login", login_error="Username atau password salah")
     if not user.get("hotel_id"):
-        return render_template("login.html", error="Akun tidak terhubung ke hotel.")
+        return render_template("login.html", auth_mode="login", login_error="Akun tidak terhubung ke hotel.")
     role = user.get("role") if isinstance(user, dict) else getattr(user, "role", "user")
     hotel = db.get_hotel(int(user["hotel_id"])) if user.get("hotel_id") else None
     if (role or "user").lower() != "admin" and hotel and not hotel.get("is_active", True):
-        return render_template("login.html", error="Hotel untuk akun ini sedang nonaktif. Hubungi admin.")
+        return render_template("login.html", auth_mode="login", login_error="Hotel untuk akun ini sedang nonaktif. Hubungi admin.")
     session["uid"] = user["user_id"]
     session["uname"] = user["username"]
     session["hotel_id"] = int(user["hotel_id"])
@@ -388,7 +388,7 @@ def login_post():
 
 @app.get("/register")
 def register():
-    return render_template("register.html")
+    return render_template("login.html", auth_mode="register")
 
 @app.post("/register")
 def register_post():
@@ -398,15 +398,16 @@ def register_post():
     address = request.form.get("address", "").strip()
     place_id_input = request.form.get("place_id", "").strip()
     if not username or not password or not hotel_name or not place_id_input:
-        return render_template("register.html", error="Semua field wajib diisi kecuali alamat.")
+        return render_template("login.html", auth_mode="register", register_error="Semua field wajib diisi kecuali alamat.")
     place_id = extract_place_id(place_id_input, resolve_redirect=True)
     if not place_id:
         return render_template(
-            "register.html",
-            error="Place ID tidak valid. Isi dengan Place ID atau link Google Maps hotel yang lengkap."
+            "login.html",
+            auth_mode="register",
+            register_error="Place ID tidak valid. Isi dengan Place ID atau link Google Maps hotel yang lengkap."
         )
     if db.get_user_by_username(username):
-        return render_template("register.html", error="Username sudah dipakai.")
+        return render_template("login.html", auth_mode="register", register_error="Username sudah dipakai.")
     pw_hash = generate_password_hash(password)
     try:
         db.create_hotel_and_user(
@@ -418,7 +419,7 @@ def register_post():
             role="user"
         )
     except Exception as e:
-        return render_template("register.html", error=f"Gagal register: {e}")
+        return render_template("login.html", auth_mode="register", register_error=f"Gagal register: {e}")
     return redirect(url_for("login"))
 
 @app.get("/logout")
@@ -716,8 +717,7 @@ def dashboard():
         total_reviews=total_reviews,
         diff_reviews=diff_reviews,
         keywords=keywords,
-        weekly=weekly
-    )
+        weekly=weekly)
 
 # Halaman review
 @app.get("/reviews")

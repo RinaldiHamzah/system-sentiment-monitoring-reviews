@@ -1,0 +1,77 @@
+{
+  "source_files": {
+    "non_balance": "D:\\PROYEK TUGAS AKHIR\\APP TA\\analisis\\model_machine\\metrics_nb_svm.json",
+    "balance": "D:\\PROYEK TUGAS AKHIR\\APP TA\\analisis\\model_machine_balance\\metrics_nb_svm_balance.json"
+  },
+  "non_balance": {
+    "nb": {
+      "alpha": 1.0,
+      "accuracy": 0.9494252873563218,
+      "precision_weighted": 0.9450518643117466,
+      "recall_weighted": 0.9494252873563218,
+      "f1_weighted": 0.9449065151231475,
+      "f1_macro": 0.8089667837751517,
+      "balanced_accuracy": 0.7639888632350944,
+      "log_loss": 0.1615192496150586
+    },
+    "svm": {
+      "C": 0.05,
+      "accuracy": 0.9425287356321839,
+      "precision_weighted": 0.9534193163158681,
+      "recall_weighted": 0.9425287356321839,
+      "f1_weighted": 0.9463454734956915,
+      "f1_macro": 0.8403575989782887,
+      "balanced_accuracy": 0.8950495721852505,
+      "hinge_loss": 0.4734711522457622
+    },
+    "tfidf_vocab_size": 5123,
+    "balanced": false
+  },
+  "balance": {
+    "nb": {
+      "alpha": 0.01,
+      "accuracy": 0.9402298850574713,
+      "precision_weighted": 0.945010337735736,
+      "recall_weighted": 0.9402298850574713,
+      "f1_weighted": 0.9422442892477813,
+      "f1_macro": 0.8210443037974684,
+      "balanced_accuracy": 0.844764362352302,
+      "log_loss": 0.17690452134513243
+    },
+    "svm": {
+      "C": 2,
+      "accuracy": 0.9540229885057471,
+      "precision_weighted": 0.9513522542465592,
+      "recall_weighted": 0.9540229885057471,
+      "f1_weighted": 0.9521665747733439,
+      "f1_macro": 0.8404723485404137,
+      "balanced_accuracy": 0.815530354475078,
+      "hinge_loss": 0.1564654102573066
+    },
+    "tfidf_vocab_size": 5123,
+    "balanced": true
+  },
+  "delta_balance_minus_non_balance": {
+    "nb": {
+      "accuracy": -0.009195402298850519,
+      "precision_weighted": -4.1526576010642025e-05,
+      "recall_weighted": -0.009195402298850519,
+      "f1_weighted": -0.002662225875366242,
+      "f1_macro": 0.012077520022316657,
+      "balanced_accuracy": 0.0807754991172076,
+      "log_loss": 0.01538527173007384,
+      "hinge_loss": null
+    },
+    "svm": {
+      "accuracy": 0.011494252873563204,
+      "precision_weighted": -0.002067062069308845,
+      "recall_weighted": 0.011494252873563204,
+      "f1_weighted": 0.005821101277652341,
+      "f1_macro": 0.0001147495621250938,
+      "balanced_accuracy": -0.07951921771017245,
+      "log_loss": null,
+      "hinge_loss": -0.3170057419884556
+    },
+    "tfidf_vocab_size": 0
+  }
+}

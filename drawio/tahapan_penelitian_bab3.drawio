@@ -1,0 +1,95 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.3.0 Chrome/140.0.7339.249 Electron/38.7.2 Safari/537.36" version="29.3.0">
+  <diagram id="tahapan-bab3" name="Tahapan Penelitian Bab 3">
+    <mxGraphModel dx="1246" dy="804" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="start" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" value="Mulai" vertex="1">
+          <mxGeometry height="60" width="90" x="510" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="problem" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Identifikasi Masalah" vertex="1">
+          <mxGeometry height="60" width="210" x="450" y="130" as="geometry" />
+        </mxCell>
+        <mxCell id="literature" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Studi Literatur" vertex="1">
+          <mxGeometry height="60" width="210" x="450" y="220" as="geometry" />
+        </mxCell>
+        <mxCell id="collect" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="Pengumpulan Data" vertex="1">
+          <mxGeometry height="60" width="180" x="70" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="label" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="Pelabelan Data" vertex="1">
+          <mxGeometry height="60" width="180" x="280" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="prep" parent="1" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;spacingLeft=8;" value="Preprocessing Data&#xa;- Case Folding&#xa;- Cleaning&#xa;- Tokenisasi&#xa;- Normalisasi&#xa;- Stopword Removal&#xa;- Stemming" vertex="1">
+          <mxGeometry height="140" width="210" x="490" y="320" as="geometry" />
+        </mxCell>
+        <mxCell id="tfidf" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Ekstraksi Fitur TF-IDF" vertex="1">
+          <mxGeometry height="60" width="190" x="730" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="train" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="Pelatihan Model&#xa;Naive Bayes dan SVM" vertex="1">
+          <mxGeometry height="80" width="190" x="950" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="eval" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" value="Evaluasi Model" vertex="1">
+          <mxGeometry height="60" width="170" x="1170" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="implement" parent="1" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;spacingLeft=8;" value="Implementasi Sistem Monitoring&#xa;- SerpAPI&#xa;- Dashboard&#xa;- Notifikasi Telegram" vertex="1">
+          <mxGeometry height="110" width="220" x="470" y="520" as="geometry" />
+        </mxCell>
+        <mxCell id="test" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Pengujian Sistem" vertex="1">
+          <mxGeometry height="60" width="200" x="480" y="670" as="geometry" />
+        </mxCell>
+        <mxCell id="result" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Hasil dan Kesimpulan" vertex="1">
+          <mxGeometry height="60" width="220" x="470" y="760" as="geometry" />
+        </mxCell>
+        <mxCell id="end" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#fff2cc;strokeColor=#d6b656;" value="Selesai" vertex="1">
+          <mxGeometry height="70" width="100" x="505" y="860" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="start" style="endArrow=block;html=1;" target="problem">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="problem" style="endArrow=block;html=1;" target="literature">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="literature" style="endArrow=block;html=1;" target="collect">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="160" y="250" />
+              <mxPoint x="160" y="340" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="collect" style="endArrow=block;html=1;" target="label">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="label" style="endArrow=block;html=1;" target="prep">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="prep" style="endArrow=block;html=1;" target="tfidf">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="1" source="tfidf" style="endArrow=block;html=1;" target="train">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" edge="1" parent="1" source="train" style="endArrow=block;html=1;" target="eval">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" edge="1" parent="1" source="eval" style="endArrow=block;html=1;" target="implement">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1280" y="520" />
+              <mxPoint x="580" y="520" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e10" edge="1" parent="1" source="implement" style="endArrow=block;html=1;" target="test">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" edge="1" parent="1" source="test" style="endArrow=block;html=1;" target="result">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e12" edge="1" parent="1" source="result" style="endArrow=block;html=1;" target="end">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

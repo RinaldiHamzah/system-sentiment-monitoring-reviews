@@ -26,11 +26,9 @@ app.secret_key = config.SECRET_KEY or os.urandom(32)
 scheduler = BackgroundScheduler(daemon=True)
 scheduler.start()
 JOB_ID_PREFIX = "scrape_job_hotel_"
-MODEL = ModelPredict()  # inisialisasi model
-# gunakan file-based timestamp agar shared antar-process (fallback jika tidak ada external store)
+MODEL = ModelPredict() 
 TIMESTAMP_FILE = os.path.join(config.DATA_DIR if hasattr(config, "DATA_DIR") else ".", ".last_scrape_ts")
 MIN_SCRAPE_INTERVAL = getattr(config, "MIN_SCRAPE_INTERVAL_SEC", 30)
-# Bot process container
 bot_process = None
 
 # Helpers 

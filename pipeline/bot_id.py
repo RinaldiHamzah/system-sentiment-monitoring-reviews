@@ -37,11 +37,11 @@ logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(levelname)s %(me
 try:
     from pipeline.mysql_connector import save_telegram_user, get_hotel  # type: ignore
     _HAS_DB_SAVE = True
-    logger.info("Using pipeline.mysql_connector.save_telegram_user")
+    logger.info("Using Pipeline")
 except Exception:
     _HAS_DB_SAVE = False
     SUBS_FILE = os.path.join(os.path.dirname(__file__), "subscribers.json")
-    logger.warning("pipeline.mysql_connector.save_telegram_user not found — using local JSON fallback (%s)", SUBS_FILE)
+    logger.warning("Pipeline.mysql_connector.save_telegram_user not found — using local JSON fallback (%s)", SUBS_FILE)
 
     def save_telegram_user(chat_id: int, hotel_id: int) -> bool:
         """

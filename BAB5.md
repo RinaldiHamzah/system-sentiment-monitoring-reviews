@@ -127,7 +127,7 @@ Tahap berikutnya adalah ekstraksi fitur menggunakan metode TF-IDF untuk mengubah
 
 Gambar 5.12 Kode Program Ekstraksi Fitur TF-IDF
 
-Pada implementasinya, `TfidfVectorizer` digunakan dengan penyesuaian karena data sudah dalam bentuk token hasil preprocessing. Proses `fit_transform` diterapkan pada data pelatihan, sedangkan data pengujian hanya melewati proses `transform` untuk menghindari *data leakage*. Hasil dari tahap ini berupa matriks fitur numerik yang menjadi masukan bagi model klasifikasi. Pada eksperimen penelitian ini, ukuran kosakata TF-IDF yang terbentuk adalah 5.123 fitur.
+Pada implementasinya, `TfidfVectorizer` digunakan dengan penyesuaian karena data sudah dalam bentuk token hasil preprocessing. Proses `fit_transform` diterapkan pada data pelatihan, sedangkan data pengujian hanya melewati proses `transform` untuk menghindari *data leakage*. Hasil dari tahap ini berupa matriks fitur numerik yang menjadi masukan bagi model klasifikasi. Pada eksperimen penelitian ini, ukuran kosakata TF-IDF yang terbentuk adalah 5.122 fitur.
 
 ##### 5.1.3.5 Penyeimbangan Data Latih
 
@@ -164,13 +164,13 @@ Naive Bayes digunakan sebagai salah satu algoritma klasifikasi sentimen karena m
 
 Gambar 5.14 Kode Program Pelatihan Model Naive Bayes
 
-Pada Gambar 5.14, pelatihan model dilakukan menggunakan `GridSearchCV` dengan `StratifiedKFold` untuk menjaga proporsi distribusi kelas sentimen pada setiap *fold*. Parameter yang dioptimasi adalah `alpha`, sedangkan metrik evaluasi yang digunakan pada tahap pencarian parameter adalah `F1-score macro`.
+Pada Gambar 5.14, pelatihan model dilakukan menggunakan `GridSearchCV` dengan `StratifiedKFold` untuk menjaga proporsi distribusi kelas sentimen pada setiap *fold*. Parameter yang dioptimasi adalah `alpha`, sedangkan proses pencarian parameter dilakukan untuk memperoleh konfigurasi model yang memberikan performa terbaik pada data pelatihan.
 
 Setelah model terbaik diperoleh, tahap selanjutnya adalah evaluasi pada data pengujian untuk mengukur kemampuan generalisasi model terhadap data baru.
 
 Gambar 5.15 Kode Program Pengujian dan Evaluasi Model Naive Bayes
 
-Pada tahap evaluasi, digunakan metrik *accuracy*, *precision weighted*, *recall weighted*, *F1-score weighted*, *F1-score macro*, *balanced accuracy*, serta *log loss*. Selain itu, confusion matrix divisualisasikan untuk memperjelas distribusi prediksi benar dan salah pada masing-masing kelas. Setelah melalui tahap evaluasi, model terbaik disimpan dalam bentuk file `naive_bayes_model.pkl` agar dapat digunakan kembali pada sistem produksi tanpa proses pelatihan ulang.
+Pada tahap evaluasi, digunakan metrik *accuracy*, *precision*, *recall*, *F1 Score*, serta *log loss*. Selain itu, confusion matrix divisualisasikan untuk memperjelas distribusi prediksi benar dan salah pada masing-masing kelas. Setelah melalui tahap evaluasi, model terbaik disimpan dalam bentuk file `naive_bayes_model.pkl` agar dapat digunakan kembali pada sistem produksi tanpa proses pelatihan ulang.
 
 ##### 5.1.3.7 Pelatihan dan Evaluasi Model Support Vector Machine
 
@@ -182,7 +182,7 @@ Pelatihan model dilakukan menggunakan `LinearSVC` dengan optimasi parameter `C` 
 
 Gambar 5.17 Kode Program Pengujian dan Evaluasi Model Support Vector Machine
 
-Pada tahap evaluasi, digunakan metrik *accuracy*, *precision weighted*, *recall weighted*, *F1-score weighted*, *F1-score macro*, *balanced accuracy*, serta *hinge loss*. Confusion matrix juga divisualisasikan untuk melihat distribusi hasil prediksi. Setelah model terbaik diperoleh, model disimpan dalam file `SVM_model.pkl` agar dapat langsung digunakan pada tahap implementasi sistem.
+Pada tahap evaluasi, digunakan metrik *accuracy*, *precision*, *recall*, *F1 Score*, serta *hinge loss*. Confusion matrix juga divisualisasikan untuk melihat distribusi hasil prediksi. Setelah model terbaik diperoleh, model disimpan dalam file `SVM_model.pkl` agar dapat langsung digunakan pada tahap implementasi sistem.
 
 #### 5.1.4 Implementasi Pipeline Sentiment Monitoring
 
@@ -503,7 +503,7 @@ Setelah data ulasan berhasil dikumpulkan, penelitian dilanjutkan ke tahap pelabe
 
 Hasil pelabelan menunjukkan bahwa data ulasan berhasil dikonversi dari bentuk teks mentah menjadi dataset yang memiliki target kelas untuk kebutuhan *supervised learning*. Dari total 2.449 ulasan, diperoleh 1.992 ulasan berlabel positif dan 187 ulasan berlabel negatif. Distribusi ini menunjukkan bahwa dataset penelitian cenderung didominasi oleh sentimen positif, sehingga isu ketidakseimbangan kelas menjadi hal yang perlu diperhatikan pada tahap eksperimen model. Dengan tersedianya label sentimen, proses eksperimen dapat dilanjutkan ke tahap preprocessing, ekstraksi fitur, penyeimbangan data latih, serta evaluasi performa model.
 
-Visualisasi distribusi label setelah proses pembersihan data juga memperlihatkan bahwa dataset didominasi oleh sentimen positif sebesar 89,94%, sedangkan sentimen negatif hanya sebesar 10,06%. Perbedaan proporsi ini menunjukkan adanya ketidakseimbangan kelas yang cukup signifikan. Kondisi tersebut berpotensi menyebabkan model lebih banyak mempelajari pola dari kelas mayoritas, sehingga performa klasifikasi pada kelas minoritas perlu diperhatikan secara khusus. Oleh karena itu, pada tahap eksperimen penelitian ini dilakukan perbandingan antara skenario menggunakan distribusi kelas asli yang tidak seimbang dan skenario penyeimbangan data latih melalui *resampling* kelas minoritas. Ketidakseimbangan kelas tersebut juga menjadi alasan pentingnya penggunaan metrik evaluasi seperti *F1 Macro* dan *balanced accuracy*, karena nilai *accuracy* saja belum cukup untuk menggambarkan kemampuan model dalam mengenali seluruh kelas secara seimbang.
+Visualisasi distribusi label setelah proses pembersihan data juga memperlihatkan bahwa dataset didominasi oleh sentimen positif sebesar 89,94%, sedangkan sentimen negatif hanya sebesar 10,06%. Perbedaan proporsi ini menunjukkan adanya ketidakseimbangan kelas yang cukup signifikan. Kondisi tersebut berpotensi menyebabkan model lebih banyak mempelajari pola dari kelas mayoritas, sehingga performa klasifikasi pada kelas minoritas perlu diperhatikan secara khusus. Oleh karena itu, pada tahap eksperimen penelitian ini dilakukan perbandingan antara skenario menggunakan distribusi kelas asli yang tidak seimbang dan skenario penyeimbangan data latih melalui *resampling* kelas minoritas.
 
 Secara metodologis, hasil pelabelan juga menunjukkan bahwa penelitian telah berhasil membangun dataset yang tidak hanya siap dianalisis secara statistik, tetapi juga siap digunakan pada eksperimen klasifikasi teks. Dengan demikian, pelabelan data berfungsi sebagai penghubung utama antara proses pengumpulan data ulasan dan tahap pembentukan model analisis sentimen.
 
@@ -571,6 +571,8 @@ Pada konteks penelitian ini, sentimen negatif justru memiliki nilai penting dala
 
 Tujuan utama dari *resampling* adalah untuk memberikan komposisi data yang lebih seimbang pada tahap pelatihan, sehingga model memiliki kesempatan yang lebih baik untuk mempelajari pola sentimen negatif. Dengan cara ini, model diharapkan tidak terlalu condong pada kelas mayoritas dan dapat memberikan performa yang lebih adil terhadap kedua kelas. Perlu dicatat bahwa proses *resampling* hanya diterapkan pada data latih, sedangkan data uji tetap dipertahankan dalam distribusi aslinya agar evaluasi model tetap mencerminkan kondisi data nyata di lapangan.
 
+Secara singkat, cara kerja *resampling* pada penelitian ini adalah dengan memperbanyak jumlah data pada kelas minoritas melalui teknik *oversampling*. Sampel dari kelas minoritas dipilih kembali secara acak dengan pengulangan hingga jumlahnya mendekati atau sama dengan kelas mayoritas. Setelah itu, data latih diacak kembali agar model mempelajari pola data dalam susunan yang lebih seimbang. Melalui langkah ini, model memperoleh kesempatan yang lebih baik untuk mengenali karakteristik kelas minoritas selama proses pelatihan.
+
 Pembagian data pada tahap pemodelan dilakukan dengan proporsi 80:20 antara data latih dan data uji. Berdasarkan data eksperimen, jumlah data latih sebanyak 1.740 ulasan yang terdiri atas 1.592 ulasan positif dan 148 ulasan negatif. Sementara itu, data uji berjumlah 435 ulasan yang terdiri atas 398 ulasan positif dan 37 ulasan negatif. Visualisasi distribusi data latih dan data uji ditunjukkan pada Gambar 5.31.
 
 Gambar 5.31 Distribusi Data Latih dan Data Uji
@@ -581,43 +583,38 @@ Gambar 5.32 Distribusi Data Latih Setelah *Resampling* dan Data Uji
 
 Keberadaan dua visualisasi tersebut menunjukkan bahwa penelitian ini membandingkan dua kondisi, yaitu kondisi distribusi asli dan kondisi setelah penyeimbangan data latih. Dengan demikian, pengaruh *resampling* terhadap performa model dapat dianalisis secara lebih jelas, baik dari sisi prediksi keseluruhan maupun dari sisi kemampuan model dalam mengenali kelas minoritas.
 
-Selain pembagian data dan penyeimbangan kelas, proses pembentukan fitur menghasilkan kosakata TF-IDF sebanyak 5.123 fitur. Representasi fitur tersebut menjadi dasar bagi model Naive Bayes dan Support Vector Machine dalam mempelajari pola sentimen dari teks ulasan Google Maps. Hasil evaluasi model pada skenario distribusi data asli yang tidak seimbang ditunjukkan pada Tabel 5.5, sedangkan hasil evaluasi pada skenario data latih yang telah diseimbangkan melalui *resampling* ditunjukkan pada Tabel 5.6.
+Selain pembagian data dan penyeimbangan kelas, proses pembentukan fitur menghasilkan kosakata TF-IDF sebanyak 5.122 fitur. Representasi fitur tersebut menjadi dasar bagi model Naive Bayes dan Support Vector Machine dalam mempelajari pola sentimen dari teks ulasan Google Maps. Hasil evaluasi model pada skenario distribusi data asli yang tidak seimbang ditunjukkan pada Tabel 5.2, sedangkan hasil evaluasi pada skenario data latih yang telah diseimbangkan melalui *resampling* ditunjukkan pada Tabel 5.3.
 
-Tabel 5.5 Hasil Evaluasi Model pada Skenario Distribusi Kelas Asli yang Tidak Seimbang
+Tabel 5.2 Hasil Evaluasi Model Kelas Asli
 
-| Model | Accuracy | Precision Weighted | Recall Weighted | F1 Weighted | F1 Macro | Balanced Accuracy |
-|---|---:|---:|---:|---:|---:|---:|
-| Naive Bayes | 0,9494 | 0,9451 | 0,9494 | 0,9449 | 0,8090 | 0,7640 |
-| SVM | 0,9425 | 0,9534 | 0,9425 | 0,9463 | 0,8404 | 0,8950 |
+| Model | Accuracy | Precision | Recall | F1 Score |
+|---|---:|---:|---:|---:|
+| Naive Bayes | 0,9494 | 0,9451 | 0,9494 | 0,9449 |
+| Support Vector Machine | 0,9425 | 0,9534 | 0,9425 | 0,9463 |
 
-Selanjutnya, hasil evaluasi model pada skenario data latih yang telah diseimbangkan melalui *resampling* kelas minoritas ditunjukkan pada Tabel 5.6.
+Selanjutnya, hasil evaluasi model pada skenario data latih yang telah diseimbangkan melalui *resampling* kelas minoritas ditunjukkan pada Tabel 5.3.
 
-Tabel 5.6 Hasil Evaluasi Model pada Skenario Penyeimbangan Data Latih dengan *Resampling* Kelas Minoritas
+Tabel 5.3 Hasil Evaluasi Model Kelas Resampling
 
-| Model | Accuracy | Precision Weighted | Recall Weighted | F1 Weighted | F1 Macro | Balanced Accuracy |
-|---|---:|---:|---:|---:|---:|---:|
-| Naive Bayes | 0,9402 | 0,9450 | 0,9402 | 0,9422 | 0,8210 | 0,8448 |
-| SVM | 0,9540 | 0,9514 | 0,9540 | 0,9522 | 0,8405 | 0,8155 |
+| Model | Accuracy | Precision | Recall | F1 Score |
+|---|---:|---:|---:|---:|
+| Naive Bayes | 0,9402 | 0,9450 | 0,9402 | 0,9422 |
+| Support Vector Machine | 0,9540 | 0,9514 | 0,9540 | 0,9522 |
 
-Berdasarkan proses *tuning* yang dilakukan, diperoleh parameter terbaik untuk masing-masing model pada masing-masing skenario sebagai berikut.
+Berdasarkan proses *tuning* yang dilakukan, diperoleh konfigurasi parameter terbaik untuk masing-masing model pada dua skenario eksperimen. Pada skenario tanpa penyeimbangan data latih, model Naive Bayes menghasilkan parameter terbaik pada nilai `alpha = 1,0`, sedangkan model Support Vector Machine (SVM) menghasilkan parameter terbaik pada nilai `C = 0,05`. Sementara itu, pada skenario dengan penyeimbangan data latih melalui *resampling*, parameter terbaik untuk Naive Bayes diperoleh pada nilai `alpha = 0,01`, sedangkan parameter terbaik untuk SVM diperoleh pada nilai `C = 2`. Adapun ukuran kosakata TF-IDF yang terbentuk pada kedua skenario adalah sebanyak `5122` fitur. Hasil *tuning* ini menunjukkan bahwa perbedaan distribusi data latih dapat memengaruhi konfigurasi parameter yang paling optimal bagi masing-masing model klasifikasi.
 
-1. Skenario tanpa penyeimbangan:
-   Naive Bayes menggunakan `alpha = 1,0`, sedangkan SVM menggunakan `C = 0,05`.
-2. Skenario dengan penyeimbangan data latih:
-   Naive Bayes menggunakan `alpha = 0,01`, sedangkan SVM menggunakan `C = 2`.
-3. Ukuran kosakata TF-IDF pada kedua skenario adalah `5123` fitur.
 
-Berdasarkan hasil pengujian tersebut, model SVM pada skenario penyeimbangan data latih melalui *resampling* kelas minoritas menghasilkan nilai *accuracy* tertinggi, yaitu sebesar 0,9540. Hal ini menunjukkan bahwa pada kondisi data latih yang telah diseimbangkan, SVM memiliki kemampuan terbaik dalam menghasilkan prediksi benar secara keseluruhan. Namun, nilai *balanced accuracy* tertinggi justru diperoleh model SVM pada skenario distribusi kelas asli yang tidak seimbang, yaitu sebesar 0,8950. Hasil ini menunjukkan bahwa peningkatan performa model akibat *resampling* tidak selalu terjadi secara konsisten pada seluruh metrik evaluasi.
+Berdasarkan hasil pengujian tersebut, model SVM pada skenario penyeimbangan data latih melalui *resampling* kelas minoritas menghasilkan nilai *accuracy* tertinggi, yaitu sebesar 0,9540. Selain itu, model ini juga memperoleh *recall* sebesar 0,9540 dan *F1 Score* sebesar 0,9522, yang menunjukkan performa klasifikasi paling kuat secara umum dibandingkan model lainnya. Hasil ini menunjukkan bahwa pada kondisi data latih yang telah diseimbangkan, SVM memiliki kemampuan terbaik dalam menghasilkan prediksi benar secara keseluruhan.
 
-Jika ditinjau lebih rinci, model Naive Bayes tetap menunjukkan performa yang kompetitif pada kedua skenario. Penerapan penyeimbangan data latih pada Naive Bayes memang menurunkan *accuracy* dari 0,9494 menjadi 0,9402, tetapi meningkatkan nilai *F1 Macro* dari 0,8090 menjadi 0,8210 dan *balanced accuracy* dari 0,7640 menjadi 0,8448. Peningkatan ini menunjukkan bahwa *resampling* membantu Naive Bayes menjadi lebih baik dalam mengenali kelas minoritas, sehingga performa antar kelas menjadi lebih seimbang.
+Jika ditinjau lebih rinci, model Naive Bayes tetap menunjukkan performa yang kompetitif pada kedua skenario. Penerapan penyeimbangan data latih pada Naive Bayes menurunkan *accuracy* dari 0,9494 menjadi 0,9402 dan *F1 Score* dari 0,9449 menjadi 0,9422, sedangkan nilai *precision* relatif tetap pada kisaran 0,945. Hal ini menunjukkan bahwa pada penelitian ini *resampling* belum memberikan peningkatan performa keseluruhan pada model Naive Bayes.
 
-Di sisi lain, model SVM menunjukkan karakteristik yang berbeda. Pada skenario penyeimbangan data latih, SVM menghasilkan *accuracy* tertinggi sebesar 0,9540 dan *F1 Weighted* sebesar 0,9522. Akan tetapi, *balanced accuracy* SVM justru menurun dari 0,8950 pada skenario tanpa penyeimbangan menjadi 0,8155 pada skenario dengan penyeimbangan. Temuan ini menunjukkan bahwa *resampling* tidak selalu meningkatkan seluruh metrik evaluasi secara bersamaan, khususnya pada model yang sejak awal sudah cukup kuat dalam membedakan kelas.
+Di sisi lain, model SVM menunjukkan karakteristik yang berbeda. Pada skenario penyeimbangan data latih, SVM menghasilkan *accuracy* tertinggi sebesar 0,9540, *recall* sebesar 0,9540, dan *F1 Score* sebesar 0,9522. Dibandingkan skenario tanpa penyeimbangan, nilai *accuracy* SVM meningkat dari 0,9425 menjadi 0,9540 dan *F1 Score* meningkat dari 0,9463 menjadi 0,9522, meskipun *precision* sedikit menurun dari 0,9534 menjadi 0,9514. Temuan ini menunjukkan bahwa *resampling* memberikan dampak positif terhadap performa keseluruhan SVM pada sebagian besar metrik utama yang digunakan dalam penelitian ini.
 
-Hasil tersebut menunjukkan bahwa *resampling* diperlukan bukan semata-mata untuk meningkatkan *accuracy*, tetapi untuk membantu model mempelajari kelas minoritas secara lebih proporsional. Dengan adanya *resampling*, evaluasi model menjadi lebih bermakna karena dapat menunjukkan apakah model benar-benar membaik dalam mengenali kedua kelas, bukan hanya semakin baik pada kelas mayoritas. Oleh karena itu, penggunaan *resampling* pada penelitian ini penting untuk memberikan gambaran yang lebih lengkap mengenai perilaku model ketika menghadapi data yang tidak seimbang.
+Hasil tersebut menunjukkan bahwa *resampling* pada penelitian ini lebih efektif dalam meningkatkan performa model SVM dibandingkan Naive Bayes jika dilihat dari *accuracy*, *precision*, *recall*, dan *F1 Score*. Dengan demikian, penerapan *resampling* bukan hanya menjadi variasi skenario eksperimen, tetapi juga memberikan gambaran mengenai bagaimana perubahan distribusi data latih memengaruhi hasil klasifikasi masing-masing algoritma.
 
-Secara keseluruhan, SVM tetap menjadi model yang paling kuat untuk dipertimbangkan dalam integrasi ke sistem operasional karena mampu memberikan performa tinggi secara umum, terutama pada *accuracy*, *F1 Weighted*, dan *F1 Macro*. Namun demikian, hasil penelitian ini juga menegaskan bahwa evaluasi model klasifikasi tidak cukup hanya didasarkan pada satu metrik. Metrik seperti *F1 Macro* dan *balanced accuracy* tetap perlu diperhatikan agar kemampuan model dalam mengklasifikasikan setiap kelas sentimen dapat dinilai secara lebih menyeluruh dan seimbang.
+Secara keseluruhan, SVM tetap menjadi model yang paling kuat untuk dipertimbangkan dalam integrasi ke sistem operasional karena mampu memberikan performa tinggi secara umum, terutama pada *accuracy*, *precision*, *recall*, dan *F1 Score*. Hasil penelitian ini juga menegaskan bahwa evaluasi model klasifikasi tidak cukup hanya didasarkan pada satu metrik, melainkan perlu dilihat secara bersama-sama agar performa model dapat dinilai secara lebih utuh.
 
-Berdasarkan seluruh hasil evaluasi tersebut, model yang dipilih sebagai model terbaik dalam penelitian ini adalah Support Vector Machine pada skenario penyeimbangan data latih melalui *resampling* kelas minoritas. Pemilihan ini didasarkan pada capaian *accuracy* tertinggi sebesar 0,9540, didukung *F1 Weighted* sebesar 0,9522 dan *F1 Macro* sebesar 0,8405 yang menunjukkan performa klasifikasi yang kuat secara umum. Meskipun demikian, hasil SVM pada skenario tanpa penyeimbangan tetap menjadi temuan penting karena menghasilkan *balanced accuracy* tertinggi sebesar 0,8950. Dengan demikian, keputusan pemilihan model terbaik dalam penelitian ini mempertimbangkan performa agregat secara keseluruhan, sekaligus tetap mencatat bahwa kemampuan model dalam menjaga keseimbangan klasifikasi antar kelas juga merupakan aspek yang penting.
+Berdasarkan seluruh hasil evaluasi tersebut, model yang dipilih sebagai model terbaik dalam penelitian ini adalah Support Vector Machine pada skenario penyeimbangan data latih melalui *resampling* kelas minoritas. Pemilihan ini didasarkan pada capaian *accuracy* tertinggi sebesar 0,9540, *precision* sebesar 0,9514, *recall* sebesar 0,9540, dan *F1 Score* sebesar 0,9522 yang menunjukkan performa klasifikasi paling kuat secara umum. Dengan demikian, keputusan pemilihan model terbaik dalam penelitian ini didasarkan pada performa agregat dari empat metrik evaluasi utama yang digunakan.
 
 Selain hasil evaluasi akhir, proses eksperimen ini juga menunjukkan bahwa performa model dipengaruhi oleh seluruh tahapan pengolahan data, mulai dari pelabelan, *preprocessing*, pembentukan fitur TF-IDF, pembagian data latih dan data uji, hingga penyeimbangan data latih. Dengan demikian, performa model analisis sentimen pada penelitian ini tidak hanya ditentukan oleh pemilihan algoritma klasifikasi, tetapi juga oleh kualitas tahapan persiapan data yang dilakukan sebelumnya.
 
@@ -715,15 +712,15 @@ Meskipun seluruh fitur utama telah berfungsi sesuai kebutuhan, masih terdapat be
 
 #### 5.3.1 Pembahasan Hasil Model Analisis
 
-Hasil evaluasi menunjukkan bahwa tidak ada satu model yang unggul mutlak pada seluruh metrik. Pada skenario distribusi kelas asli yang tidak seimbang, Naive Bayes memperoleh *accuracy* yang tinggi, yaitu 0,9494. Namun, SVM menunjukkan keunggulan pada metrik yang lebih sensitif terhadap distribusi kelas, khususnya *F1 Macro* sebesar 0,8404 dan *balanced accuracy* sebesar 0,8950. Hal ini menunjukkan bahwa SVM lebih mampu mempertahankan keseimbangan performa antar kelas pada data yang tidak seimbang.
+Hasil evaluasi menunjukkan bahwa tidak ada satu model yang unggul mutlak pada seluruh skenario eksperimen. Pada skenario distribusi kelas asli yang tidak seimbang, Naive Bayes memperoleh *accuracy* sebesar 0,9494, sedangkan SVM menghasilkan *precision* lebih tinggi sebesar 0,9534 dan *F1 Score* sebesar 0,9463. Hal ini menunjukkan bahwa pada kondisi data asli, kedua model memiliki keunggulan masing-masing pada metrik yang berbeda.
 
-Pada skenario penyeimbangan data latih melalui *resampling* kelas minoritas, dampak yang muncul berbeda pada masing-masing model. Naive Bayes mengalami penurunan *accuracy* dari 0,9494 menjadi 0,9402, tetapi nilai *F1 Macro* meningkat dari 0,8090 menjadi 0,8210 dan *balanced accuracy* meningkat dari 0,7640 menjadi 0,8448. Temuan ini menunjukkan bahwa penyeimbangan data latih membantu Naive Bayes menjadi lebih baik dalam mengenali kelas minoritas meskipun ketepatan prediksi keseluruhan sedikit menurun.
+Pada skenario penyeimbangan data latih melalui *resampling* kelas minoritas, pengaruh yang muncul berbeda pada masing-masing model. Naive Bayes mengalami penurunan *accuracy* dari 0,9494 menjadi 0,9402 dan *F1 Score* dari 0,9449 menjadi 0,9422, sedangkan nilai *precision* dan *recall* tidak menunjukkan peningkatan yang berarti. Temuan ini menunjukkan bahwa penyeimbangan data latih pada penelitian ini belum mampu meningkatkan performa keseluruhan model Naive Bayes.
 
-Sementara itu, SVM pada skenario penyeimbangan data latih menghasilkan *accuracy* tertinggi sebesar 0,9540 dengan *F1 Weighted* sebesar 0,9522 dan *F1 Macro* sebesar 0,8405. Meskipun demikian, nilai *balanced accuracy* justru menurun menjadi 0,8155 dibandingkan skenario tanpa penyeimbangan. Dengan demikian, penyeimbangan data latih memang meningkatkan performa keseluruhan SVM pada metrik agregat tertentu, tetapi tidak selalu meningkatkan kemampuannya secara merata pada seluruh kelas.
+Sementara itu, SVM pada skenario penyeimbangan data latih menghasilkan *accuracy* tertinggi sebesar 0,9540, *precision* sebesar 0,9514, *recall* sebesar 0,9540, dan *F1 Score* sebesar 0,9522. Dibandingkan skenario tanpa penyeimbangan, hasil ini menunjukkan adanya peningkatan pada *accuracy*, *recall*, dan *F1 Score*, sehingga dapat dikatakan bahwa penyeimbangan data latih memberikan dampak positif terhadap performa keseluruhan SVM.
 
-Dengan demikian, pemilihan model terbaik tidak seharusnya hanya didasarkan pada satu metrik. Jika fokus penelitian diarahkan pada proporsi prediksi benar secara keseluruhan, maka SVM pada skenario penyeimbangan data latih melalui *resampling* kelas minoritas merupakan pilihan yang paling kuat. Namun, apabila penekanan diarahkan pada keseimbangan performa antar kelas, maka hasil SVM pada skenario distribusi kelas asli yang tidak seimbang serta peningkatan performa Naive Bayes setelah penyeimbangan data juga menjadi temuan yang penting untuk dipertimbangkan.
+Dengan demikian, pemilihan model terbaik tidak seharusnya hanya didasarkan pada satu metrik. Dalam penelitian ini, empat metrik utama yang digunakan adalah *accuracy*, *precision*, *recall*, dan *F1 Score*. Berdasarkan keempat metrik tersebut, SVM pada skenario penyeimbangan data latih melalui *resampling* kelas minoritas merupakan pilihan yang paling kuat karena menunjukkan performa paling baik secara agregat.
 
-Dari sudut pandang implementasi, temuan ini juga relevan karena sistem monitoring tidak hanya membutuhkan model yang akurat secara umum, tetapi juga model yang cukup sensitif dalam membaca ulasan dengan distribusi kelas yang tidak selalu seimbang. Dalam konteks operasional hotel, kegagalan mendeteksi ulasan negatif dapat berdampak lebih besar dibanding kesalahan klasifikasi pada ulasan positif. Oleh sebab itu, penggunaan beberapa metrik evaluasi dalam penelitian ini menjadi penting untuk memastikan model yang dipilih benar-benar sesuai dengan kebutuhan sistem monitoring.
+Dari sudut pandang implementasi, temuan ini relevan karena sistem monitoring tidak hanya membutuhkan model yang akurat secara umum, tetapi juga model yang konsisten pada beberapa ukuran performa utama. Dalam konteks operasional hotel, model yang dipilih perlu mampu memberikan prediksi yang tepat, menjaga ketepatan klasifikasi, serta mempertahankan kualitas hasil secara keseluruhan. Oleh sebab itu, penggunaan empat metrik evaluasi dalam penelitian ini menjadi penting untuk memastikan bahwa model yang dipilih benar-benar sesuai dengan kebutuhan sistem monitoring.
 
 #### 5.3.2 Pembahasan Implementasi Sistem Monitoring
 
@@ -759,6 +756,6 @@ Secara praktis, sistem yang dibangun dapat membantu pengelola hotel memantau opi
 
 Dari sisi pengambilan keputusan, keberadaan dashboard, halaman analitik, riwayat ulasan, notifikasi, dan subscriber menunjukkan bahwa hasil analisis sentimen dapat diubah menjadi informasi yang lebih mudah dimanfaatkan oleh pengguna nonteknis. Hal ini berarti sistem tidak hanya memberikan keluaran prediksi, tetapi juga mendukung proses monitoring layanan secara berkelanjutan, terutama dalam mendeteksi ulasan negatif yang memerlukan respons lebih cepat.
 
-Secara akademik, penelitian ini menunjukkan bahwa kombinasi TF-IDF dengan model machine learning klasik seperti Naive Bayes dan SVM masih relevan untuk analisis sentimen teks berbahasa Indonesia, khususnya pada domain ulasan hotel. Hasil eksperimen juga menegaskan pentingnya evaluasi multi-metrik dalam penentuan model terbaik, terutama pada kondisi data yang tidak seimbang. Temuan ini memperlihatkan bahwa penilaian performa model tidak cukup hanya berdasarkan *accuracy*, tetapi perlu mempertimbangkan *F1 Macro* dan *balanced accuracy* agar interpretasi hasil menjadi lebih komprehensif.
+Secara akademik, penelitian ini menunjukkan bahwa kombinasi TF-IDF dengan model machine learning klasik seperti Naive Bayes dan SVM masih relevan untuk analisis sentimen teks berbahasa Indonesia, khususnya pada domain ulasan hotel. Hasil eksperimen juga menegaskan pentingnya evaluasi multi-metrik dalam penentuan model terbaik. Temuan ini memperlihatkan bahwa penilaian performa model tidak cukup hanya berdasarkan *accuracy*, tetapi juga perlu mempertimbangkan *precision*, *recall*, dan *F1 Score* agar interpretasi hasil menjadi lebih komprehensif.
 
 Dengan demikian, implikasi hasil penelitian ini tidak hanya terletak pada keberhasilan membangun aplikasi monitoring sentimen, tetapi juga pada kontribusinya dalam menunjukkan hubungan antara kualitas persiapan data, strategi penyeimbangan kelas, pemilihan model, dan kegunaan sistem dalam konteks operasional nyata.

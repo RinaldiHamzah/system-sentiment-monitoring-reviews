@@ -32,13 +32,14 @@ Berdasarkan latar belakang yang telah diuraikan, rumusan masalah dalam penelitia
 
 Agar penelitian tidak menyimpang dari pokok pembahasan, maka batasan masalah yang digunakan adalah sebagai berikut:
 
-1. Data yang digunakan berupa ulasan pelanggan dari Google Maps pada objek penelitian Aveta Hotel Malioboro.
-2. Analisis sentimen dibatasi pada dua kategori, yaitu POSITIF dan NEGATIF.
-3. Dataset historis digunakan untuk pelatihan dan evaluasi model, sedangkan data operasional digunakan untuk proses monitoring sistem.
-4. Algoritma klasifikasi yang digunakan adalah Naive Bayes dan Support Vector Machine (SVM).
-5. Representasi fitur teks dilakukan menggunakan TF-IDF.
-6. Sistem monitoring diintegrasikan dengan Telegram Bot sebagai media notifikasi otomatis.
-7. Karakter layanan sistem dibatasi pada near real-time berbasis interval scheduler.
+1. Objek penelitian dibatasi pada ulasan pelanggan Aveta Hotel Malioboro yang diperoleh dari Google Maps.
+2. Analisis sentimen dalam penelitian ini hanya mengklasifikasikan ulasan ke dalam dua kategori, yaitu sentimen positif dan sentimen negatif.
+3. Data historis digunakan untuk proses pelatihan dan evaluasi model, sedangkan data ulasan terbaru digunakan untuk proses monitoring sistem.
+4. Metode klasifikasi yang digunakan dalam penelitian ini dibatasi pada Naive Bayes dan Support Vector Machine (SVM).
+5. Representasi fitur teks dilakukan menggunakan metode TF-IDF.
+6. Sistem yang dibangun difokuskan pada monitoring sentimen ulasan dan pengiriman notifikasi otomatis melalui Telegram Bot.
+7. Proses pengambilan, analisis, dan monitoring ulasan dilakukan secara otomatis pada interval waktu tertentu menggunakan scheduler. Oleh karena itu, sistem yang dibangun tidak memproses setiap ulasan baru secara langsung pada saat ulasan dipublikasikan, melainkan setelah siklus pembaruan berikutnya. Dengan karakteristik tersebut, layanan sistem pada penelitian ini termasuk soft real-time dan diimplementasikan dalam bentuk near real-time, sehingga tidak mencakup mekanisme pemrosesan data real-time penuh berbasis streaming.
+8. Penelitian ini difokuskan pada klasifikasi sentimen ulasan secara umum ke dalam dua kategori menggunakan algoritma Naive Bayes dan Support Vector Machine (SVM), sehingga tidak mencakup analisis sentimen berdasarkan banyak kelas, aspek tertentu, maupun metode klasifikasi lainnya.
 
 ### 1.4 Tujuan Penelitian
 

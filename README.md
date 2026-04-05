@@ -204,11 +204,4 @@ Pastikan file model berikut ada di direktori model yang dipakai kode:
 - Cek `TELEGRAM_BOT_TOKEN` pada `.env`
 - Restart aplikasi setelah update token
 
-## Kontribusi
-
-1. Buat branch fitur: `git checkout -b feature/nama-fitur`
-2. Commit perubahan: `git commit -m "Deskripsi perubahan"`
-3. Push branch: `git push origin feature/nama-fitur`
-4. Buat Pull Request
-
 

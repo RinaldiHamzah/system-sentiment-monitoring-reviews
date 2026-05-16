@@ -1,61 +1,119 @@
 # Hotel Review Sentiment Monitoring
 
-Aplikasi web tugas akhir untuk monitoring ulasan hotel dan analisis sentimen berbasis machine learning.  
-Sistem dirancang dengan aturan **1 user = 1 hotel**, dilengkapi scraping Google Maps, dashboard analitik, manajemen data admin, dan notifikasi Telegram.
+Hotel Review Sentiment Monitoring adalah aplikasi web untuk membantu pemilik atau pengelola hotel memahami kualitas layanan berdasarkan ulasan pelanggan. Sistem ini menggabungkan scraping review Google Maps, klasifikasi sentimen berbasis machine learning, dashboard analitik, scheduler otomatis, panel admin, dan notifikasi Telegram dalam satu alur kerja yang terintegrasi.
+
+Project ini dikembangkan sebagai tugas akhir dengan fokus pada studi kasus monitoring reputasi hotel. Arsitektur sistem dirancang dengan aturan **1 user = 1 hotel**, sehingga setiap akun dapat mengelola data hotel, ulasan, analitik, dan notifikasi secara terpisah.
+
+## Highlight
+
+- **Monitoring ulasan hotel berbasis data**: review dikumpulkan, disimpan, dianalisis, dan divisualisasikan melalui dashboard.
+- **Analisis sentimen otomatis**: sistem melakukan klasifikasi sentimen menggunakan model Naive Bayes dan SVM.
+- **Scraping Google Maps**: pengambilan data review dilakukan berdasarkan `place_id` melalui SerpAPI.
+- **Dashboard analitik**: tersedia ringkasan rating, tren review, distribusi sentimen, dan keyword penting.
+- **Notifikasi Telegram**: sistem dapat mengirim broadcast untuk informasi atau pembaruan tertentu.
+- **Scheduler scraping**: proses pengambilan review dapat dijalankan otomatis per hotel.
+- **Panel admin**: admin dapat memantau dan mengelola data utama sistem.
+- **Ekspor data**: review dapat diekspor ke format CSV atau Excel untuk kebutuhan laporan.
 
 ## Fitur Utama
 
-- Autentikasi user (login, register, reset password)
-- Registrasi hotel bersamaan dengan pembuatan akun user
-- Scraping review Google Maps berbasis `place_id`
-- Prediksi sentimen review (Naive Bayes + SVM)
-- Dashboard statistik review, rating, tren, dan keyword
-- Manajemen subscriber Telegram + log notifikasi
-- Scheduler scraping otomatis per hotel
-- Panel admin untuk monitoring dan manajemen data utama
-- Ekspor data review (CSV/Excel)
+### Untuk User Hotel
+
+- Registrasi akun sekaligus registrasi data hotel.
+- Login, logout, dan reset password.
+- Mengelola data hotel yang terhubung dengan akun.
+- Menjalankan scraping review Google Maps.
+- Melihat daftar review dan hasil prediksi sentimen.
+- Memantau statistik review melalui dashboard.
+- Mengelola subscriber Telegram.
+- Mengekspor data review.
+
+### Untuk Admin
+
+- Monitoring data user dan hotel.
+- Melihat data review lintas hotel.
+- Mengelola data utama sistem.
+- Memantau aktivitas scraping, notifikasi, dan integrasi sistem.
+
+### Machine Learning
+
+- Preprocessing data review.
+- Ekstraksi fitur menggunakan TF-IDF.
+- Prediksi sentimen menggunakan Naive Bayes dan SVM.
+- Penyimpanan model menggunakan `joblib` dalam format `.pkl`.
 
 ## Teknologi
 
-- Backend: Flask
-- Database: MySQL / MariaDB
-- Scheduler: APScheduler
-- ML Inference: scikit-learn + joblib (model `.pkl`)
-- Frontend: HTML, CSS, JavaScript (Jinja templates)
-- Integrasi eksternal:
-  - SerpAPI (scraping Google Maps)
-  - Telegram Bot API (broadcast notifikasi)
+| Area | Teknologi |
+| --- | --- |
+| Backend | Flask |
+| Database | MySQL / MariaDB |
+| Scheduler | APScheduler |
+| Machine Learning | scikit-learn, joblib |
+| Frontend | HTML, CSS, JavaScript, Jinja Templates |
+| Scraping | SerpAPI Google Maps Reviews |
+| Notifikasi | Telegram Bot API |
 
 ## Arsitektur Singkat
 
-- `app.py` mengelola route halaman + API + scheduler + bot control.
-- `pipeline/` berisi modul scraping, prediksi sentimen, pipeline data, koneksi DB, dan utilitas.
-- `schema.sql` berisi skema database utama.
-- Data model ML ada di folder model (`analisis/model_machine` atau lokasi model lain yang sesuai kode).
+```text
+APP TA/
+|- app.py                 # Route halaman, API, scheduler, dan kontrol bot
+|- config.py              # Konfigurasi berbasis environment variable
+|- schema.sql             # Struktur database utama
+|- requirements.txt       # Daftar dependency Python
+|- pipeline/              # Modul scraping, prediksi, koneksi DB, dan utilitas
+|- templates/             # Template halaman HTML
+|- static/                # Asset CSS, JavaScript, dan gambar
+|- model_ml/              # Model machine learning untuk inference
+|- analisis/              # Notebook dan artefak analisis eksperimen
+```
+
+Alur utama sistem:
+
+1. User mendaftarkan akun dan data hotel.
+2. Sistem mengambil review Google Maps berdasarkan `place_id`.
+3. Review disimpan ke database.
+4. Model machine learning melakukan prediksi sentimen.
+5. Dashboard menampilkan ringkasan rating, sentimen, tren, dan keyword.
+6. Scheduler dan Telegram membantu proses monitoring berjalan lebih otomatis.
 
 ## Prasyarat
 
-- Python 3.10+
-- MySQL atau MariaDB aktif
-- Git (opsional, untuk kolaborasi/push GitHub)
+Pastikan environment berikut sudah tersedia:
+
+- Python 3.10 atau lebih baru.
+- MySQL atau MariaDB.
+- Git untuk clone dan kolaborasi.
+- Akun SerpAPI untuk fitur scraping.
+- Bot Telegram jika ingin mengaktifkan fitur notifikasi.
 
 ## Instalasi
 
-1. Clone repository:
+Clone repository:
 
 ```bash
-git clone <URL_REPOSITORY_ANDA>
-cd APP\ TA
+git clone https://github.com/RinaldiHamzah/system-sentiment-monitoring-reviews.git
+cd system-sentiment-monitoring-reviews
 ```
 
-2. Buat virtual environment dan aktifkan:
+Buat virtual environment:
 
 ```bash
 python -m venv env
-env\Scripts\activate
 ```
 
-3. Install dependency:
+Aktifkan virtual environment:
+
+```bash
+# Windows
+env\Scripts\activate
+
+# macOS / Linux
+source env/bin/activate
+```
+
+Install dependency:
 
 ```bash
 pip install -r requirements.txt
@@ -63,7 +121,7 @@ pip install -r requirements.txt
 
 ## Konfigurasi Environment
 
-Buat file `.env` di root project, lalu isi minimal:
+Buat file `.env` di root project. Gunakan `.env.example` sebagai referensi.
 
 ```env
 SECRET_KEY=replace-with-strong-random-secret
@@ -83,121 +141,153 @@ MIN_SCRAPE_INTERVAL_SEC=30
 DATA_DIR=.
 ```
 
-Catatan:
+Catatan keamanan:
+
 - Jangan commit file `.env`.
+- Simpan API key dan token hanya di environment lokal.
 - `SERPAPI_KEY` wajib untuk fitur scraping.
-- `TELEGRAM_BOT_TOKEN` opsional jika tidak memakai bot notifikasi.
+- `TELEGRAM_BOT_TOKEN` bersifat opsional jika fitur bot tidak digunakan.
 
 ## Setup Database
 
-### Opsi 1: Dari MariaDB/MySQL shell
+Buat database:
 
 ```sql
 CREATE DATABASE IF NOT EXISTS monitoring_review
   CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
+```
+
+Import skema database:
+
+```bash
+mysql -u root -p monitoring_review < schema.sql
+```
+
+Jika menggunakan MariaDB/MySQL shell:
+
+```sql
 USE monitoring_review;
 SOURCE schema.sql;
 ```
 
-### Opsi 2: Dari terminal (Windows CMD)
-
-```cmd
-mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS monitoring_review;"
-mysql -u root -p monitoring_review < schema.sql
-```
-
 ## Menjalankan Aplikasi
+
+Jalankan aplikasi Flask:
 
 ```bash
 python app.py
 ```
 
-Akses aplikasi:
-- `http://127.0.0.1:5000/login`
-- `http://127.0.0.1:5000/register`
+Akses aplikasi melalui browser:
+
+- Login: `http://127.0.0.1:5000/login`
+- Register: `http://127.0.0.1:5000/register`
+- Dashboard: `http://127.0.0.1:5000/dashboard`
 
 ## Endpoint Utama
 
 ### Halaman
 
-- `GET /login`
-- `GET /register`
-- `GET /dashboard`
-- `GET /reviews`
-- `GET /analytics`
-- `GET /subscribers`
-- `GET /notifications`
-- `GET /admin/dashboard`
-- `GET /admin/data`
+| Method | Endpoint | Deskripsi |
+| --- | --- | --- |
+| GET | `/login` | Halaman login |
+| GET | `/register` | Halaman registrasi user dan hotel |
+| GET | `/dashboard` | Dashboard user hotel |
+| GET | `/reviews` | Daftar review |
+| GET | `/analytics` | Analitik sentimen dan rating |
+| GET | `/subscribers` | Manajemen subscriber Telegram |
+| GET | `/notifications` | Log notifikasi |
+| GET | `/admin/dashboard` | Dashboard admin |
+| GET | `/admin/data` | Manajemen data admin |
 
 ### API
 
-- `GET /api/reviews`
-- `GET /api/notifications`
-- `POST /api/scrape`
-- `POST /api/scheduler/start`
-- `POST /api/scheduler/stop`
-- `GET /api/scheduler/status`
-- `GET /api/subscribers`
-- `POST /api/subscribers`
-- `DELETE /api/subscribers/<chat_id>`
-- `GET /api/analytics/sentiment`
-- `GET /api/analytics/rating`
-- `GET /api/analytics/trend`
-- `GET /api/analytics/keywords`
+| Method | Endpoint | Deskripsi |
+| --- | --- | --- |
+| GET | `/api/reviews` | Mengambil data review |
+| GET | `/api/notifications` | Mengambil data notifikasi |
+| POST | `/api/scrape` | Menjalankan scraping review |
+| POST | `/api/scheduler/start` | Menyalakan scheduler |
+| POST | `/api/scheduler/stop` | Mematikan scheduler |
+| GET | `/api/scheduler/status` | Melihat status scheduler |
+| GET | `/api/subscribers` | Mengambil subscriber Telegram |
+| POST | `/api/subscribers` | Menambah subscriber Telegram |
+| DELETE | `/api/subscribers/<chat_id>` | Menghapus subscriber Telegram |
+| GET | `/api/analytics/sentiment` | Data analitik sentimen |
+| GET | `/api/analytics/rating` | Data analitik rating |
+| GET | `/api/analytics/trend` | Data tren review |
+| GET | `/api/analytics/keywords` | Data keyword review |
 
 ### Bot Control
 
-- `POST /bot/start`
-- `POST /bot/stop`
-- `GET /bot/status`
-
-## Struktur Project
-
-```text
-APP TA/
-├─ app.py
-├─ config.py
-├─ schema.sql
-├─ requirements.txt
-├─ pipeline/
-├─ templates/
-├─ static/
-├─ model_ml/
-├─ analisis/
-
+| Method | Endpoint | Deskripsi |
+| --- | --- | --- |
+| POST | `/bot/start` | Menyalakan bot Telegram |
+| POST | `/bot/stop` | Mematikan bot Telegram |
+| GET | `/bot/status` | Melihat status bot Telegram |
 
 ## Demo Aplikasi
-Video berikut menunjukkan alur sistem secara langsung: mulai dari memasukkan ulasan, pemrosesan dengan TF-IDF, klasifikasi sentimen (Naive Bayes vs SVM), hingga dashboard analitik.
-[![Demo Aplikasi - Klik untuk menonton](demo/thumbnail.png)](https://drive.google.com/file/d/1oA91pVq13Lb6Kn3RAzjQRKhDnKx1sC0d/view?usp=sharing)
+
+Demo aplikasi menampilkan alur sistem mulai dari input dan pengambilan ulasan, pemrosesan TF-IDF, klasifikasi sentimen menggunakan Naive Bayes dan SVM, hingga visualisasi hasil pada dashboard analitik.
+
+[Tonton demo aplikasi](https://drive.google.com/file/d/1oA91pVq13Lb6Kn3RAzjQRKhDnKx1sC0d/view?usp=sharing)
 
 ## Troubleshooting
 
-### 1) `mysql` tidak dikenali di PowerShell
+### `mysql` tidak dikenali di PowerShell
 
-Gunakan path penuh, contoh:
+Gunakan path penuh ke binary MySQL. Contoh untuk XAMPP:
 
 ```powershell
 & "C:\xampp\mysql\bin\mysql.exe" -u root -p
 ```
 
-### 2) Error model tidak ditemukan
+### Model machine learning tidak ditemukan
 
-Pastikan file model berikut ada di direktori model yang dipakai kode:
+Pastikan file model tersedia di direktori yang digunakan aplikasi:
+
 - `naive_bayes_model.pkl`
 - `SVM_model.pkl`
 - `vectorizer.pkl`
 
-### 3) Scraping tidak jalan
+### Scraping tidak berjalan
 
-- Cek `SERPAPI_KEY` pada `.env`
-- Cek koneksi internet
-- Cek response endpoint `/api/scrape`
+Periksa beberapa hal berikut:
 
-### 4) Bot Telegram gagal start
+- `SERPAPI_KEY` sudah diisi di file `.env`.
+- Koneksi internet aktif.
+- `place_id` hotel valid.
+- Response endpoint `/api/scrape` tidak mengembalikan error.
 
-- Cek `TELEGRAM_BOT_TOKEN` pada `.env`
-- Restart aplikasi setelah update token
+### Bot Telegram gagal start
 
+Periksa beberapa hal berikut:
 
+- `TELEGRAM_BOT_TOKEN` sudah benar.
+- Bot tidak sedang berjalan di proses lain.
+- Aplikasi sudah direstart setelah token diperbarui.
+
+## Kontribusi
+
+Kontribusi sangat terbuka untuk pengembangan project ini. Beberapa area yang bisa dikembangkan:
+
+- Peningkatan kualitas model sentimen.
+- Penambahan visualisasi analitik.
+- Optimasi pipeline scraping dan scheduler.
+- Perbaikan UI/UX dashboard.
+- Penambahan test otomatis.
+- Dokumentasi deployment.
+- Integrasi sumber review lain selain Google Maps.
+
+Alur kontribusi yang disarankan:
+
+1. Fork repository ini.
+2. Buat branch fitur atau perbaikan.
+3. Lakukan perubahan secara terarah.
+4. Pastikan aplikasi tetap dapat dijalankan.
+5. Buat pull request dengan deskripsi yang jelas.
+
+## Lisensi
+
+Project ini dikembangkan untuk kebutuhan akademik dan pembelajaran. Jika ingin menggunakan atau mengembangkan ulang project ini, harap cantumkan kredit yang sesuai kepada pembuat repository.

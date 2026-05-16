@@ -168,13 +168,9 @@ APP TA/
 ├─ analisis/
 
 
-## Keamanan & GitHub
-
-File yang jangan di-push:
-- `.env`
-- folder virtual environment (`env/`, `.venv/`)
-- file cache Python (`__pycache__/`)
-- data sensitif atau dump DB produksi
+## Demo Aplikasi
+Video berikut menunjukkan alur sistem secara langsung: mulai dari memasukkan ulasan, pemrosesan dengan TF-IDF, klasifikasi sentimen (Naive Bayes vs SVM), hingga dashboard analitik.
+[![Demo Aplikasi - Klik untuk menonton](demo/thumbnail.png)](https://drive.google.com/file/d/1oA91pVq13Lb6Kn3RAzjQRKhDnKx1sC0d/view?usp=sharing)
 
 ## Troubleshooting
 

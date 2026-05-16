@@ -1,4 +1,4 @@
--- schema.sql
+ï»¿-- schema.sql
 -- Multi-hotel schema for Hotel Review Dashboard
 -- Compatible with MariaDB / MySQL 8+
 
@@ -236,17 +236,15 @@ MariaDB [monitoring_review]> DESCRIBE notifications;
 +------------+-------------+------+-----+---------------------+----------------+
 6 rows in set (0.035 sec)
 
-
-
 ERD Summary:
 6 Tables included (color-coded):
 
-hotels — Blue, central parent table (9 columns)
-users — Green, 1 user ? 1 hotel (6 columns)
-hotel_reviews — Yellow, raw reviews (8 columns)
-sentiment_reviews — Purple, ML sentiment output (11 columns)
-telegram_users — Orange, composite PK (chat_id, hotel_id) (4 columns)
-notifications — Red, notification log (6 columns)
+hotels ï¿½ Blue, central parent table (9 columns)
+users ï¿½ Green, 1 user ? 1 hotel (6 columns)
+hotel_reviews ï¿½ Yellow, raw reviews (8 columns)
+sentiment_reviews ï¿½ Purple, ML sentiment output (11 columns)
+telegram_users ï¿½ Orange, composite PK (chat_id, hotel_id) (4 columns)
+notifications ï¿½ Red, notification log (6 columns)
 8 FK relationships with crow's foot notation:
 
 hotels 1?N users
@@ -255,5 +253,5 @@ hotels 1?N sentiment_reviews
 hotels 1?N telegram_users
 hotels 1?N notifications
 hotel_reviews 1?N sentiment_reviews
-hotel_reviews 1?0..N notifications (dashed line — optional FK, ON DELETE SET NULL)
+hotel_reviews 1?0..N notifications (dashed line ï¿½ optional FK, ON DELETE SET NULL)
 telegram_users 1?N notifications (composite FK chat_id + hotel_id)

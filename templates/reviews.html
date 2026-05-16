@@ -72,7 +72,7 @@
             {% for r in rows %}
             <tr>
               <td>{{ loop.index }}</td>
-              <td><small class="text-muted">{{ r.review_date }} WIB</small></td>
+              <td><small class="text-muted">{{ r.review_date.strftime("%Y-%m-%d %H:%M:%S") if r.review_date else "-" }} WIB</small></td>
               <td><i class="bi bi-person-circle text-muted me-1"></i>{{ r.user_name }}</td>
               <td><span class="badge bg-warning text-dark">{{ r.rating }} ★</span></td>
               <td>
@@ -269,7 +269,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   function formatDateTime(raw) {
     if (!raw) return "-";
-    return String(raw).replace("T", " ").replace(".000Z", "").trim();
+    return String(raw)
+      .replace("T", " ")
+      .replace(".000Z", "")
+      .replace(/\s*GMT\b/i, "")
+      .replace(/\s+WIB$/i, "")
+      .replace(/\s+/g, " ")
+      .trim();
   }
 
   function renderTable(rows) {

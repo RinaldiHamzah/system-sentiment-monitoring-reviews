@@ -732,6 +732,14 @@ def api_reviews():
     limit = request.args.get("limit", default=100, type=int)
     search = request.args.get("search", default="", type=str)
     rows = db.list_sentiments(hotel_id, limit=(None if limit == 0 else limit), search=search)
+    for row in rows:
+        review_date = row.get("review_date")
+        if review_date:
+            row["review_date"] = (
+                review_date.strftime("%Y-%m-%d %H:%M:%S")
+                if hasattr(review_date, "strftime")
+                else str(review_date)
+            )
     return jsonify(rows)
 
 #  Route untuk Export Reviews

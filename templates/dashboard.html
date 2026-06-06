@@ -104,8 +104,12 @@
               </div>
               <div class="review-footer">
                 <div class="review-badges d-flex flex-wrap gap-2">
-                  <span class="badge {% if r.sentiment_nb == 'POSITIF' %}bg-success{% elif r.sentiment_nb == 'NEGATIF' %}bg-danger{% else %}bg-secondary{% endif %}">NB: {{ r.sentiment_nb }}</span>
-                  <span class="badge {% if r.sentiment_svm == 'POSITIF' %}bg-success{% elif r.sentiment_svm == 'NEGATIF' %}bg-danger{% else %}bg-secondary{% endif %}">SVM: {{ r.sentiment_svm }}</span>
+                  <span class="badge {% if r.sentiment_nb == 'POSITIF' %}bg-success{% elif r.sentiment_nb == 'NEGATIF' %}bg-danger{% else %}bg-secondary{% endif %}" title="Confidence: {{ r.confidence_nb|default(0)|round(2) }}%">
+                    <i class="bi bi-robot me-1"></i>NB: {{ r.sentiment_nb }} <span class="ms-1" style="opacity: 0.85;">({{ r.confidence_nb|default(0)|round(1) }}%)</span>
+                  </span>
+                  <span class="badge {% if r.sentiment_svm == 'POSITIF' %}bg-success{% elif r.sentiment_svm == 'NEGATIF' %}bg-danger{% else %}bg-secondary{% endif %}" title="Confidence: {{ r.confidence_svm|default(0)|round(2) }}%">
+                    <i class="bi bi-lightning-fill me-1"></i>SVM: {{ r.sentiment_svm }} <span class="ms-1" style="opacity: 0.85;">({{ r.confidence_svm|default(0)|round(1) }}%)</span>
+                  </span>
                 </div>
                 <hr class="my-2 opacity-50">
                 <div class="small sentiment-explanation">

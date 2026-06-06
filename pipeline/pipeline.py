@@ -76,10 +76,13 @@ def run_pipeline_for_hotel(hotel_id):
 
         # Prediksi sentimen
         if review_text:
-            sentiment_nb = normalize_sentiment(MODEL.predict_nb(review_text), rating)
-            sentiment_svm = normalize_sentiment(MODEL.predict_svm(review_text), rating)
+            sentiment_nb, confidence_nb = MODEL.predict_nb_with_confidence(review_text)
+            sentiment_nb = normalize_sentiment(sentiment_nb, rating)
+            sentiment_svm, confidence_svm = MODEL.predict_svm_with_confidence(review_text)
+            sentiment_svm = normalize_sentiment(sentiment_svm, rating)
         else:
             sentiment_nb = sentiment_svm = ("POSITIF" if rating >= 4 else "NEGATIF")
+            confidence_nb = confidence_svm = 50.0
             review_text = f"(Tidak ada teks, hanya rating {rating})"
 
         # Simpan ke DB
@@ -100,7 +103,9 @@ def run_pipeline_for_hotel(hotel_id):
             rating=rating,
             review_date=review_time,
             nb=sentiment_nb,
+            nb_conf=confidence_nb,
             svm=sentiment_svm,
+            svm_conf=confidence_svm,
             source=source,
         )
 

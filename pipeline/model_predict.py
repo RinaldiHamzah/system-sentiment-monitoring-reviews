@@ -1,5 +1,6 @@
 # # pipeline/model_predict.py
 import joblib
+import numpy as np
 
 class ModelPredict:
     def __init__(self):
@@ -20,6 +21,28 @@ class ModelPredict:
     def predict_svm(self, text):
          vec = self.__vectorize(text)
          return self.__label(self.__svm_model.predict(vec))
+    
+    def predict_nb_with_confidence(self, text):
+        """Return (label, confidence_percentage)"""
+        vec = self.__vectorize(text)
+        try:
+            proba = self.__nb_model.predict_proba(vec)[0]
+            confidence = max(proba) * 100
+            label = self.__label(self.__nb_model.predict(vec))
+            return label, round(confidence, 2)
+        except:
+            return self.predict_nb(text), 0.0
+    
+    def predict_svm_with_confidence(self, text):
+        """Return (label, confidence_percentage) - SVM doesn't have predict_proba, use decision_function"""
+        vec = self.__vectorize(text)
+        try:
+            decision = self.__svm_model.decision_function(vec)[0]
+            confidence = abs(decision) * 100 / (1 + abs(decision))  # sigmoid-like normalization
+            label = self.__label(self.__svm_model.predict(vec))
+            return label, round(confidence, 2)
+        except:
+            return self.predict_svm(text), 0.0
 
 # ##Model Machine
 # from pathlib import Path

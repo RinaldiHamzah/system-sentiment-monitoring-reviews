@@ -80,7 +80,9 @@ CREATE TABLE IF NOT EXISTS sentiment_reviews (
   rating TINYINT UNSIGNED NULL,
   review_date DATETIME NOT NULL,
   sentiment_nb VARCHAR(50) NULL,
+  confidence_nb FLOAT NULL DEFAULT 0.0,
   sentiment_svm VARCHAR(50) NULL,
+  confidence_svm FLOAT NULL DEFAULT 0.0,
   source VARCHAR(50) NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 

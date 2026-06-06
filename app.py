@@ -149,10 +149,11 @@ def user_required(f):
 # Sentiment classification (benar) 
 def classify_text_or_rating(text, rating):
     """
-    Return (nb_label, svm_label, db_label)
+    Return (nb_label, nb_confidence, svm_label, svm_confidence, db_label)
     db_label normalized to ('Positive','Negative')
+    confidence in percentage (0-100)
     - If text exists, use models
-    - Else infer from rating: rating >=4 => Positive else Negative
+    - Else infer from rating: rating >=3 => Positive else Negative
     """
     def norm(lbl):
         if not lbl:
@@ -165,24 +166,28 @@ def classify_text_or_rating(text, rating):
             return "NEGATIF"
         return None
     if text and text.strip():
+        nb = nb_conf = None
+        svm = svm_conf = None
         try:
-            nb = MODEL.predict_nb(text)
+            nb, nb_conf = MODEL.predict_nb_with_confidence(text)
         except Exception:
             nb = None
+            nb_conf = 0.0
         try:
-            svm = MODEL.predict_svm(text)
+            svm, svm_conf = MODEL.predict_svm_with_confidence(text)
         except Exception:
             svm = None
+            svm_conf = 0.0
 
         db_label = norm(nb) or norm(svm) or "NEGATIF"
         # normalize returned labels to readable form
         nb = nb or "Unknown"
         svm = svm or "Unknown"
-        return nb, svm, db_label
+        return nb, nb_conf, svm, svm_conf, db_label
     else:
         rule = "POSITIF" if (int(rating or 0) >= 3) else "NEGATIF"
-        # return nb, svm, db_label (both models absent so we duplicate rule)
-        return rule, rule, rule
+        # return nb, nb_conf, svm, svm_conf, db_label (both models absent so we duplicate rule)
+        return rule, 50.0, rule, 50.0, rule
 
 # Broadcast Telegram 
 def broadcast_to_subscribers(saved_review, hotel_id):
@@ -280,13 +285,13 @@ def run_scrape_once(hotel_id):
         return {"ok": False, "msg": f"DB error on save_hotel_review: {e}"}
 
     # classify
-    nb, svm, db_label = classify_text_or_rating(text, rating)
+    nb, nb_conf, svm, svm_conf, db_label = classify_text_or_rating(text, rating)
 
     # save sentiment result
     try:
         sid = db.save_sentiment_review(
             review_id, hotel_id, user_name, text, rating,
-            review_time, nb, svm, source
+            review_time, nb, nb_conf, svm, svm_conf, source
         )
     except Exception as e:
         return {"ok": False, "msg": f"DB error on save_sentiment_review: {e}"}
@@ -298,7 +303,9 @@ def run_scrape_once(hotel_id):
         "review_text": text,
         "rating": rating,
         "sentiment_nb": nb,
+        "confidence_nb": nb_conf,
         "sentiment_svm": svm,
+        "confidence_svm": svm_conf,
         "review_time": review_time, # waktu asli dari Google Maps
         "source": source
     }
@@ -668,6 +675,17 @@ def dashboard():
     # Ambil data utama dari database
     hotel = db.get_hotel(hotel_id)
     latest = db.get_latest_reviews(hotel_id, limit=1)  # Review terbaru
+    
+    # Hitung confidence scores on-the-fly untuk setiap review
+    for review in latest:
+        text = review.get("review_text", "").strip() if review.get("review_text") else ""
+        rating = review.get("rating", 0)
+        
+        # Hitung confidence scores
+        nb_label, nb_conf, svm_label, svm_conf, _ = classify_text_or_rating(text, rating)
+        review["confidence_nb"] = nb_conf
+        review["confidence_svm"] = svm_conf
+    
     counts = db.count_sentiments(hotel_id)
     trend = db.trend_reviews(hotel_id, days=7)
     total_reviews = db.get_review_stats(hotel_id)

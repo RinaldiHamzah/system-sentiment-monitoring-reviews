@@ -25,6 +25,33 @@ DB_CONFIG = {
 def get_connection():
     return mysql.connector.connect(**DB_CONFIG)
 
+# Auto-migration: Add confidence columns if they don't exist
+def _ensure_confidence_columns():
+    """Add confidence_nb and confidence_svm columns to sentiment_reviews if missing"""
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        
+        # Check if columns exist
+        cur.execute("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='sentiment_reviews' AND COLUMN_NAME='confidence_nb'")
+        if not cur.fetchone():
+            cur.execute("ALTER TABLE sentiment_reviews ADD COLUMN confidence_nb FLOAT DEFAULT 0.0 AFTER sentiment_nb")
+            print("✓ Added confidence_nb column to sentiment_reviews")
+        
+        cur.execute("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='sentiment_reviews' AND COLUMN_NAME='confidence_svm'")
+        if not cur.fetchone():
+            cur.execute("ALTER TABLE sentiment_reviews ADD COLUMN confidence_svm FLOAT DEFAULT 0.0 AFTER sentiment_svm")
+            print("✓ Added confidence_svm column to sentiment_reviews")
+        
+        conn.commit()
+        cur.close()
+        conn.close()
+    except Exception as e:
+        print(f"⚠ Migration warning (non-critical): {e}")
+
+# Run migration on module import
+_ensure_confidence_columns()
+
 # Users
 def get_user_by_username(username):
     conn = get_connection()
@@ -669,8 +696,8 @@ def create_sentiment_review_admin(review_id, sentiment_nb, sentiment_svm, source
         cur.execute(
             """
             INSERT INTO sentiment_reviews
-                (review_id, hotel_id, user_name, review_text, rating, review_date, sentiment_nb, sentiment_svm, source)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                (review_id, hotel_id, user_name, review_text, rating, review_date, sentiment_nb, confidence_nb, sentiment_svm, confidence_svm, source)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
             (
                 base_review["review_id"],
@@ -680,7 +707,9 @@ def create_sentiment_review_admin(review_id, sentiment_nb, sentiment_svm, source
                 base_review["rating"],
                 _normalize_review_date(base_review.get("review_date")),
                 sentiment_nb,
+                0.0,
                 sentiment_svm,
+                0.0,
                 source,
             ),
         )
@@ -699,11 +728,13 @@ def update_sentiment_review_admin(sentiment_id, sentiment_nb, sentiment_svm, sou
             """
             UPDATE sentiment_reviews
             SET sentiment_nb = %s,
+                confidence_nb = %s,
                 sentiment_svm = %s,
+                confidence_svm = %s,
                 source = %s
             WHERE sentiment_id = %s
             """,
-            (sentiment_nb, sentiment_svm, source, sentiment_id),
+            (sentiment_nb, 0.0, sentiment_svm, 0.0, source, sentiment_id),
         )
         conn.commit()
     finally:
@@ -759,7 +790,7 @@ def save_hotel_review(hotel_id, user_name, review_text, rating, review_date=None
         conn.close()
 
 
-def save_sentiment_review(review_id, hotel_id, user_name, review_text, rating, review_date, nb, svm, source="Google Maps"):
+def save_sentiment_review(review_id, hotel_id, user_name, review_text, rating, review_date, nb, nb_conf, svm, svm_conf, source="Google Maps"):
     conn = get_connection()
     cur = conn.cursor()
     try:
@@ -767,10 +798,10 @@ def save_sentiment_review(review_id, hotel_id, user_name, review_text, rating, r
         cur.execute(
             """
             INSERT INTO sentiment_reviews
-                (review_id, hotel_id, user_name, review_text, rating, review_date, sentiment_nb, sentiment_svm, source)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                (review_id, hotel_id, user_name, review_text, rating, review_date, sentiment_nb, confidence_nb, sentiment_svm, confidence_svm, source)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
-            (review_id, hotel_id, user_name, review_text, rating, normalized_date, nb, svm, source),
+            (review_id, hotel_id, user_name, review_text, rating, normalized_date, nb, float(nb_conf or 0), svm, float(svm_conf or 0), source),
         )
         conn.commit()
         return cur.lastrowid
@@ -826,7 +857,7 @@ def get_latest_reviews(hotel_id, limit=1):
     try:
         cur.execute(
             """
-            SELECT user_name, review_text, rating, source, review_date, sentiment_nb, sentiment_svm
+            SELECT user_name, review_text, rating, source, review_date, sentiment_nb, confidence_nb, sentiment_svm, confidence_svm
             FROM sentiment_reviews
             WHERE hotel_id = %s
             ORDER BY review_date DESC

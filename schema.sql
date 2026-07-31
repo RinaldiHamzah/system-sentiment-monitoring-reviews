@@ -1,6 +1,12 @@
 ﻿-- schema.sql
 -- Multi-hotel schema for Hotel Review Dashboard
 -- Compatible with MariaDB / MySQL 8+
+cd C:\xampp\mysql\bin
+mysql -u root -p
+show databases;
+use monitoring_review;
+show tables;
+
 
 CREATE DATABASE IF NOT EXISTS monitoring_review
   CHARACTER SET utf8mb4
@@ -151,109 +157,3 @@ CREATE TABLE IF NOT EXISTS notifications (
 CREATE INDEX idx_notifications_hotel_created_at ON notifications (hotel_id, created_at);
 CREATE INDEX idx_notifications_chat_hotel ON notifications (chat_id, hotel_id);
 CREATE INDEX idx_notifications_review_id ON notifications (review_id);
-
-MariaDB [monitoring_review]> DESCRIBE users;
-+------------+----------------------+------+-----+---------------------+----------------+
-| Field      | Type                 | Null | Key | Default             | Extra          |
-+------------+----------------------+------+-----+---------------------+----------------+
-| user_id    | int(11)              | NO   | PRI | NULL                | auto_increment |
-| username   | varchar(100)         | NO   | UNI | NULL                |                |
-| password   | varchar(255)         | NO   |     | NULL                |                |
-| role       | enum('admin','user') | YES  |     | user                |                |
-| created_at | timestamp            | NO   |     | current_timestamp() |                |
-| hotel_id   | int(11)              | NO   | MUL | NULL                |                |
-+------------+----------------------+------+-----+---------------------+----------------+
-6 rows in set (0.076 sec)
-
-MariaDB [monitoring_review]> DESCRIBE hotels;
-+-------------------------+--------------+------+-----+---------------------+----------------+
-| Field                   | Type         | Null | Key | Default             | Extra          |
-+-------------------------+--------------+------+-----+---------------------+----------------+
-| hotel_id                | int(11)      | NO   | PRI | NULL                | auto_increment |
-| manajemen_hotel_id      | int(11)      | NO   | UNI | NULL                |                |
-| hotel_name              | varchar(255) | NO   |     | NULL                |                |
-| address                 | varchar(500) | YES  |     | NULL                |                |
-| place_id                | varchar(255) | NO   |     | NULL                |                |
-| created_at              | timestamp    | NO   |     | current_timestamp() |                |
-| last_scrape_at          | datetime     | YES  |     | NULL                |                |
-| is_active               | tinyint(1)   | NO   |     | 1                   |                |
-| scrape_interval_minutes | int(11)      | YES  |     | 30                  |                |
-+-------------------------+--------------+------+-----+---------------------+----------------+
-9 rows in set (0.037 sec)
-
-MariaDB [monitoring_review]> DESCRIBE hotel_reviews;
-+-------------+--------------+------+-----+---------------------+----------------+
-| Field       | Type         | Null | Key | Default             | Extra          |
-+-------------+--------------+------+-----+---------------------+----------------+
-| review_id   | int(11)      | NO   | PRI | NULL                | auto_increment |
-| hotel_id    | int(11)      | NO   | MUL | NULL                |                |
-| user_name   | varchar(255) | YES  |     | NULL                |                |
-| review_text | text         | YES  |     | NULL                |                |
-| rating      | int(11)      | YES  |     | NULL                |                |
-| review_date | datetime     | NO   |     | NULL                |                |
-| source      | varchar(50)  | YES  |     | Google Maps         |                |
-| created_at  | timestamp    | NO   |     | current_timestamp() |                |
-+-------------+--------------+------+-----+---------------------+----------------+
-8 rows in set (0.017 sec)
-
-MariaDB [monitoring_review]> DESCRIBE sentiment_reviews;
-+---------------+---------------------+------+-----+---------------------+----------------+
-| Field         | Type                | Null | Key | Default             | Extra          |
-+---------------+---------------------+------+-----+---------------------+----------------+
-| sentiment_id  | int(11)             | NO   | PRI | NULL                | auto_increment |
-| review_id     | int(11)             | NO   | MUL | NULL                |                |
-| hotel_id      | int(11)             | NO   | MUL | NULL                |                |
-| user_name     | varchar(255)        | YES  |     | NULL                |                |
-| review_text   | text                | YES  |     | NULL                |                |
-| rating        | tinyint(3) unsigned | YES  |     | NULL                |                |
-| review_date   | datetime            | NO   |     | NULL                |                |
-| sentiment_nb  | varchar(50)         | YES  |     | NULL                |                |
-| sentiment_svm | varchar(50)         | YES  |     | NULL                |                |
-| source        | varchar(50)         | YES  |     | NULL                |                |
-| created_at    | timestamp           | NO   |     | current_timestamp() |                |
-+---------------+---------------------+------+-----+---------------------+----------------+
-11 rows in set (0.016 sec)
-
-MariaDB [monitoring_review]> DESCRIBE telegram_users;
-+------------+------------+------+-----+---------------------+-------+
-| Field      | Type       | Null | Key | Default             | Extra |
-+------------+------------+------+-----+---------------------+-------+
-| chat_id    | bigint(20) | NO   | PRI | NULL                |       |
-| hotel_id   | int(11)    | NO   | PRI | NULL                |       |
-| subscribed | tinyint(1) | YES  |     | 1                   |       |
-| created_at | timestamp  | NO   |     | current_timestamp() |       |
-+------------+------------+------+-----+---------------------+-------+
-4 rows in set (0.015 sec)
-
-MariaDB [monitoring_review]> DESCRIBE notifications;
-+------------+-------------+------+-----+---------------------+----------------+
-| Field      | Type        | Null | Key | Default             | Extra          |
-+------------+-------------+------+-----+---------------------+----------------+
-| notif_id   | int(11)     | NO   | PRI | NULL                | auto_increment |
-| review_id  | int(11)     | YES  | MUL | NULL                |                |
-| chat_id    | bigint(20)  | NO   | MUL | NULL                |                |
-| hotel_id   | int(11)     | NO   | MUL | NULL                |                |
-| status     | varchar(50) | YES  |     | sent                |                |
-| created_at | timestamp   | NO   |     | current_timestamp() |                |
-+------------+-------------+------+-----+---------------------+----------------+
-6 rows in set (0.035 sec)
-
-ERD Summary:
-6 Tables included (color-coded):
-
-hotels � Blue, central parent table (9 columns)
-users � Green, 1 user ? 1 hotel (6 columns)
-hotel_reviews � Yellow, raw reviews (8 columns)
-sentiment_reviews � Purple, ML sentiment output (11 columns)
-telegram_users � Orange, composite PK (chat_id, hotel_id) (4 columns)
-notifications � Red, notification log (6 columns)
-8 FK relationships with crow's foot notation:
-
-hotels 1?N users
-hotels 1?N hotel_reviews
-hotels 1?N sentiment_reviews
-hotels 1?N telegram_users
-hotels 1?N notifications
-hotel_reviews 1?N sentiment_reviews
-hotel_reviews 1?0..N notifications (dashed line � optional FK, ON DELETE SET NULL)
-telegram_users 1?N notifications (composite FK chat_id + hotel_id)

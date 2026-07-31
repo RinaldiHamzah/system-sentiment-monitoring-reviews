@@ -8,6 +8,10 @@ import config
 import csv
 import io
 import pandas as pd  
+# eror handle
+import warnings
+from sklearn.exceptions import InconsistentVersionWarning
+
 from flask import Response
 from datetime import datetime, date, timedelta, timezone
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, has_request_context, flash
@@ -20,6 +24,12 @@ from pipeline import bot_id, mysql_connector as db
 from pipeline.scraper import scrape_latest_review, parse_review_time
 from pipeline.model_predict import ModelPredict
 from pipeline.place_id import extract_place_id
+
+import warnings
+from sklearn.exceptions import InconsistentVersionWarning
+
+# Menyembunyikan peringatan perbedaan versi scikit-learn
+warnings.filterwarnings("ignore", category=InconsistentVersionWarning)
 
 app = Flask(__name__)
 app.secret_key = config.SECRET_KEY or os.urandom(32)
@@ -361,7 +371,68 @@ def _admin_action_response(ok, message, table, status_code=200, payload=None):
     flash(message)
     return redirect(url_for("admin_data_management", table=table))
 
+
+def _check_database_connection():
+    conn = db.get_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT 1")
+        cur.fetchone()
+    finally:
+        cur.close()
+        conn.close()
+
 # Routes & endpoints
+
+# ============ HEALTH CHECK (untuk Railway/monitoring) ============
+@app.get("/health")
+def health_check():
+    """
+    Health check endpoint untuk Railway dan monitoring tools.
+    Digunakan untuk memverifikasi aplikasi berjalan dengan baik.
+    Returns JSON dengan status dan informasi sistem.
+    """
+    try:
+        # Test database connection
+        db_status = "ok"
+        try:
+            # Simple query untuk test koneksi DB
+            _check_database_connection()
+            db_status = "connected"
+        except Exception as e:
+            db_status = f"error: {str(e)[:50]}"
+        
+        # Compile status
+        health = {
+            "status": "healthy" if db_status == "connected" else "degraded",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "version": "1.0.0",
+            "services": {
+                "app": "running",
+                "database": db_status,
+                "scheduler": "active" if scheduler.running else "inactive"
+            }
+        }
+        
+        http_code = 200 if health["status"] == "healthy" else 503
+        return jsonify(health), http_code
+    except Exception as e:
+        return jsonify({
+            "status": "unhealthy",
+            "error": str(e),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }), 500
+
+# ============ READINESS CHECK (untuk Kubernetes/orchestration) ============
+@app.get("/ready")
+def readiness_check():
+    """Readiness check - jika database belum siap, request belum bisa diproses."""
+    try:
+        _check_database_connection()
+        return jsonify({"ready": True}), 200
+    except Exception:
+        return jsonify({"ready": False}), 503
+
 @app.get("/login")
 def login():
     if "uid" in session:
@@ -795,10 +866,10 @@ def export_reviews(fmt):
         query += " AND sentiment_svm = 'POSITIF'"
     elif model == "svm_neg":
         query += " AND sentiment_svm = 'NEGATIF'"
-    # Filter tanggal (pakai MySQL DATE_FORMAT / BETWEEN)
+    # Filter tanggal, kompatibel MySQL/PostgreSQL.
     if date_filter == "month":
         now = datetime.now().strftime("%Y-%m")
-        query += " AND DATE_FORMAT(review_date, '%%Y-%%m') = %s"
+        query += " AND TO_CHAR(review_date, 'YYYY-MM') = %s" if getattr(db, "_is_postgres", lambda: False)() else " AND DATE_FORMAT(review_date, '%%Y-%%m') = %s"
         params.append(now)
     elif date_filter == "range" and start and end:
         query += " AND DATE(review_date) BETWEEN %s AND %s"
@@ -1130,4 +1201,5 @@ def internal_error(e):
 
 if __name__ == "__main__":
     # jangan gunakan debug=True jika ingin start multiprocessing di devlopment
-    app.run(host="0.0.0.0", port=5000, debug=True, use_reloader=True)
+    debug = os.getenv("FLASK_ENV", "").lower() == "development"
+    app.run(host="0.0.0.0", port=5005, debug=debug, use_reloader=debug)  

@@ -2,9 +2,19 @@
 import os
 import csv
 import math
+import hashlib
 import mysql.connector
+from dotenv import load_dotenv
 from collections import Counter
 from datetime import datetime
+
+try:
+    import psycopg2
+    import psycopg2.extras
+except ModuleNotFoundError:
+    psycopg2 = None
+
+load_dotenv()
 
 def _env_int(name, default):
     raw = os.getenv(name, str(default))
@@ -13,8 +23,11 @@ def _env_int(name, default):
     except (TypeError, ValueError):
         return default
 
-# KONFIGURASI DATABASE
-DB_CONFIG = {
+DB_ENGINE = (os.getenv("DB_ENGINE") or os.getenv("DATABASE_ENGINE") or "mysql").strip().lower()
+DATABASE_URL = (os.getenv("DATABASE_URL") or os.getenv("SUPABASE_DB_URL") or "").strip()
+
+# KONFIGURASI DATABASE MYSQL, tetap disimpan sebagai fallback/backup.
+MYSQL_CONFIG = {
     "host": os.getenv("DB_HOST", "localhost"),
     "port": _env_int("DB_PORT", 3306),
     "user": os.getenv("DB_USER", "root"),
@@ -22,8 +35,132 @@ DB_CONFIG = {
     "database": os.getenv("DB_NAME", "monitoring_review"),
 }
 
+
+class _PostgresConnection:
+    def __init__(self, conn):
+        self._conn = conn
+
+    def cursor(self, dictionary=False, **kwargs):
+        if dictionary:
+            _require_psycopg2()
+            kwargs["cursor_factory"] = psycopg2.extras.RealDictCursor
+        return self._conn.cursor(**kwargs)
+
+    def start_transaction(self):
+        return None
+
+    def __getattr__(self, name):
+        return getattr(self._conn, name)
+
+
 def get_connection():
-    return mysql.connector.connect(**DB_CONFIG)
+    if DB_ENGINE in ("postgres", "postgresql", "supabase"):
+        _require_psycopg2()
+        if DATABASE_URL:
+            return _PostgresConnection(psycopg2.connect(DATABASE_URL))
+
+        pg_config = {
+            "host": os.getenv("PGHOST") or os.getenv("SUPABASE_DB_HOST") or os.getenv("DB_HOST", "localhost"),
+            "port": _env_int("PGPORT", _env_int("SUPABASE_DB_PORT", _env_int("DB_PORT", 5432))),
+            "user": os.getenv("PGUSER") or os.getenv("SUPABASE_DB_USER") or os.getenv("DB_USER", "postgres"),
+            "password": os.getenv("PGPASSWORD") or os.getenv("SUPABASE_DB_PASSWORD") or os.getenv("DB_PASSWORD", ""),
+            "dbname": os.getenv("PGDATABASE") or os.getenv("SUPABASE_DB_NAME") or os.getenv("DB_NAME", "postgres"),
+            "sslmode": os.getenv("PGSSLMODE", "require"),
+        }
+        return _PostgresConnection(psycopg2.connect(**pg_config))
+
+    return mysql.connector.connect(**MYSQL_CONFIG)
+
+
+def _is_postgres():
+    return DB_ENGINE in ("postgres", "postgresql", "supabase")
+
+
+def _require_psycopg2():
+    if psycopg2 is None:
+        raise RuntimeError(
+            "DB_ENGINE is set to PostgreSQL/Supabase, but psycopg2 is not installed. "
+            "Install dependencies with: pip install -r requirements.txt"
+        )
+
+
+def _integrity_error_type():
+    if _is_postgres():
+        _require_psycopg2()
+        return psycopg2.IntegrityError
+    return mysql.connector.IntegrityError
+
+
+def _fetch_insert_id(cur):
+    row = cur.fetchone()
+    if isinstance(row, dict):
+        return row.get("id")
+    return row[0] if row else None
+
+
+def _split_sql_statements(sql_text):
+    statements = []
+    current = []
+    for raw_line in sql_text.splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("--"):
+            continue
+
+        current.append(raw_line)
+        if line.endswith(";"):
+            statement = "\n".join(current).strip()
+            if statement:
+                statements.append(statement)
+            current = []
+
+    if current:
+        statement = "\n".join(current).strip()
+        if statement:
+            statements.append(statement)
+
+    return statements
+
+
+def _ensure_schema():
+    """Create core tables from schema.sql when the target database is empty."""
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+
+        if _is_postgres():
+            cur.execute("SELECT to_regclass('public.hotels')")
+        else:
+            cur.execute("SHOW TABLES LIKE 'hotels'")
+        table_row = cur.fetchone()
+        table_exists = bool(table_row and table_row[0])
+        if table_exists:
+            cur.close()
+            conn.close()
+            return
+
+        if _is_postgres():
+            cur.close()
+            conn.close()
+            print("WARNING: Supabase schema belum ditemukan. Buat tabel PostgreSQL di Supabase terlebih dahulu.")
+            return
+
+        schema_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "schema.sql"))
+        with open(schema_path, "r", encoding="utf-8-sig") as f:
+            schema_sql = f.read()
+
+        for statement in _split_sql_statements(schema_sql):
+            normalized = statement.lstrip().lower()
+            if normalized.startswith("create database") or normalized.startswith("use "):
+                continue
+            cur.execute(statement)
+
+        conn.commit()
+        cur.close()
+        conn.close()
+        print("Initialized database schema")
+    except Exception as e:
+        print(f"Schema initialization warning (non-critical): {e}")
+
 
 # Auto-migration: Add confidence columns if they don't exist
 def _ensure_confidence_columns():
@@ -31,25 +168,26 @@ def _ensure_confidence_columns():
     try:
         conn = get_connection()
         cur = conn.cursor()
-        
-        # Check if columns exist
-        cur.execute("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='sentiment_reviews' AND COLUMN_NAME='confidence_nb'")
+
+        schema_filter = "table_schema = 'public'" if _is_postgres() else "table_schema = DATABASE()"
+        cur.execute(f"SELECT column_name FROM information_schema.columns WHERE {schema_filter} AND table_name='sentiment_reviews' AND column_name='confidence_nb'")
         if not cur.fetchone():
-            cur.execute("ALTER TABLE sentiment_reviews ADD COLUMN confidence_nb FLOAT DEFAULT 0.0 AFTER sentiment_nb")
-            print("✓ Added confidence_nb column to sentiment_reviews")
-        
-        cur.execute("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='sentiment_reviews' AND COLUMN_NAME='confidence_svm'")
+            cur.execute("ALTER TABLE sentiment_reviews ADD COLUMN confidence_nb DOUBLE PRECISION DEFAULT 0.0" if _is_postgres() else "ALTER TABLE sentiment_reviews ADD COLUMN confidence_nb FLOAT DEFAULT 0.0 AFTER sentiment_nb")
+            print("Added confidence_nb column to sentiment_reviews")
+
+        cur.execute(f"SELECT column_name FROM information_schema.columns WHERE {schema_filter} AND table_name='sentiment_reviews' AND column_name='confidence_svm'")
         if not cur.fetchone():
-            cur.execute("ALTER TABLE sentiment_reviews ADD COLUMN confidence_svm FLOAT DEFAULT 0.0 AFTER sentiment_svm")
-            print("✓ Added confidence_svm column to sentiment_reviews")
+            cur.execute("ALTER TABLE sentiment_reviews ADD COLUMN confidence_svm DOUBLE PRECISION DEFAULT 0.0" if _is_postgres() else "ALTER TABLE sentiment_reviews ADD COLUMN confidence_svm FLOAT DEFAULT 0.0 AFTER sentiment_svm")
+            print("Added confidence_svm column to sentiment_reviews")
         
         conn.commit()
         cur.close()
         conn.close()
     except Exception as e:
-        print(f"⚠ Migration warning (non-critical): {e}")
+        print(f"Migration warning (non-critical): {e}")
 
-# Run migration on module import
+# Run startup database preparation on module import.
+_ensure_schema()
 _ensure_confidence_columns()
 
 # Users
@@ -79,7 +217,8 @@ def create_hotel_and_user(
     lock_acquired = False
     try:
         # Serialize hotel creation to avoid manajemen_hotel_id race under concurrent registrations.
-        cur.execute("SELECT GET_LOCK(%s, %s)", (lock_name, 10))
+        lock_key = int(hashlib.sha256(lock_name.encode("utf-8")).hexdigest()[:15], 16)
+        cur.execute("SELECT pg_try_advisory_lock(%s)" if _is_postgres() else "SELECT GET_LOCK(%s, %s)", (lock_key,) if _is_postgres() else (lock_name, 10))
         lock_row = cur.fetchone()
         lock_acquired = bool(lock_row and int(lock_row[0]) == 1)
         if not lock_acquired:
@@ -98,12 +237,19 @@ def create_hotel_and_user(
                     INSERT INTO hotels
                         (manajemen_hotel_id, hotel_name, address, place_id, scrape_interval_minutes, is_active)
                     VALUES (%s, %s, %s, %s, %s, TRUE)
+                    RETURNING hotel_id
+                    """ if _is_postgres() else """
+                    INSERT INTO hotels
+                        (manajemen_hotel_id, hotel_name, address, place_id, scrape_interval_minutes, is_active)
+                    VALUES (%s, %s, %s, %s, %s, TRUE)
                     """,
                     (next_mgmt_id, hotel_name, address, place_id, scrape_interval_minutes),
                 )
+                hotel_id = _fetch_insert_id(cur) if _is_postgres() else cur.lastrowid
                 inserted = True
                 break
-            except mysql.connector.IntegrityError as e:
+            except _integrity_error_type() as e:
+                conn.rollback()
                 msg = str(e).lower()
                 if "place_id" in msg:
                     raise ValueError("Place ID sudah terdaftar. Gunakan Place ID hotel lain.")
@@ -115,7 +261,6 @@ def create_hotel_and_user(
         if not inserted:
             raise ValueError("Gagal membuat manajemen_hotel_id unik setelah beberapa percobaan.")
 
-        hotel_id = cur.lastrowid
         cur.execute(
             "INSERT INTO users (username, password, role, hotel_id) VALUES (%s, %s, %s, %s)",
             (username, password_hash, role, hotel_id),
@@ -128,7 +273,7 @@ def create_hotel_and_user(
     finally:
         if lock_acquired:
             try:
-                cur.execute("SELECT RELEASE_LOCK(%s)", (lock_name,))
+                cur.execute("SELECT pg_advisory_unlock(%s)" if _is_postgres() else "SELECT RELEASE_LOCK(%s)", (lock_key,) if _is_postgres() else (lock_name,))
                 cur.fetchone()
             except Exception:
                 pass
@@ -397,26 +542,29 @@ def list_admin_table_catalog():
             cur.execute(f"SELECT COUNT(*) AS total_rows FROM {table_name}")
             count_row = cur.fetchone() or {}
 
-            cur.execute(
-                """
-                SELECT
-                    ROUND((data_length + index_length) / 1024, 1) AS size_kb
-                FROM information_schema.TABLES
-                WHERE table_schema = DATABASE() AND table_name = %s
-                """,
-                (table_name,),
-            )
+            if _is_postgres():
+                cur.execute("SELECT ROUND(pg_total_relation_size(%s::regclass) / 1024.0, 1) AS size_kb", (table_name,))
+            else:
+                cur.execute(
+                    """
+                    SELECT
+                        ROUND((data_length + index_length) / 1024, 1) AS size_kb
+                    FROM information_schema.TABLES
+                    WHERE table_schema = DATABASE() AND table_name = %s
+                    """,
+                    (table_name,),
+                )
             size_row = cur.fetchone() or {}
 
             cur.execute(
                 """
-                SELECT COLUMN_NAME
-                FROM information_schema.COLUMNS
-                WHERE table_schema = DATABASE() AND table_name = %s
-                ORDER BY ORDINAL_POSITION
+                SELECT column_name AS "COLUMN_NAME"
+                FROM information_schema.columns
+                WHERE table_schema = %s AND table_name = %s
+                ORDER BY ordinal_position
                 LIMIT 6
                 """,
-                (table_name,),
+                ("public" if _is_postgres() else MYSQL_CONFIG["database"], table_name),
             )
             preview_cols = [r["COLUMN_NAME"] for r in (cur.fetchall() or [])]
 
@@ -484,9 +632,9 @@ def get_admin_table_preview(table_name, limit=8, page=1, search=""):
             ],
         },
         "notifications": {
-            "order_candidates": ["notification_id", "created_at", "review_id"],
+            "order_candidates": ["notif_id", "created_at", "review_id"],
             "preferred_columns": [
-                "notification_id",
+                "notif_id",
                 "review_id",
                 "chat_id",
                 "hotel_id",
@@ -495,9 +643,8 @@ def get_admin_table_preview(table_name, limit=8, page=1, search=""):
             ],
         },
         "telegram_users": {
-            "order_candidates": ["id", "created_at", "chat_id"],
+            "order_candidates": ["created_at", "chat_id", "hotel_id"],
             "preferred_columns": [
-                "id",
                 "chat_id",
                 "hotel_id",
                 "subscribed",
@@ -515,12 +662,12 @@ def get_admin_table_preview(table_name, limit=8, page=1, search=""):
     try:
         cur.execute(
             """
-            SELECT COLUMN_NAME
-            FROM information_schema.COLUMNS
-            WHERE table_schema = DATABASE() AND table_name = %s
-            ORDER BY ORDINAL_POSITION
+            SELECT column_name AS "COLUMN_NAME"
+            FROM information_schema.columns
+            WHERE table_schema = %s AND table_name = %s
+            ORDER BY ordinal_position
             """,
-            (table_name,),
+            ("public" if _is_postgres() else MYSQL_CONFIG["database"], table_name),
         )
         actual_columns = [r["COLUMN_NAME"] for r in (cur.fetchall() or [])]
         if not actual_columns:
@@ -539,11 +686,11 @@ def get_admin_table_preview(table_name, limit=8, page=1, search=""):
         params = []
 
         if search_term and table_name == "hotel_reviews":
-            where_clauses.append("(CAST(review_id AS CHAR) LIKE %s OR CAST(hotel_id AS CHAR) LIKE %s OR user_name LIKE %s OR review_text LIKE %s OR source LIKE %s)")
+            where_clauses.append("(CAST(review_id AS TEXT) LIKE %s OR CAST(hotel_id AS TEXT) LIKE %s OR user_name LIKE %s OR review_text LIKE %s OR source LIKE %s)" if _is_postgres() else "(CAST(review_id AS CHAR) LIKE %s OR CAST(hotel_id AS CHAR) LIKE %s OR user_name LIKE %s OR review_text LIKE %s OR source LIKE %s)")
             like = f"%{search_term}%"
             params.extend([like, like, like, like, like])
         elif search_term and table_name == "sentiment_reviews":
-            where_clauses.append("(CAST(sentiment_id AS CHAR) LIKE %s OR CAST(review_id AS CHAR) LIKE %s OR CAST(hotel_id AS CHAR) LIKE %s OR user_name LIKE %s OR sentiment_nb LIKE %s OR sentiment_svm LIKE %s)")
+            where_clauses.append("(CAST(sentiment_id AS TEXT) LIKE %s OR CAST(review_id AS TEXT) LIKE %s OR CAST(hotel_id AS TEXT) LIKE %s OR user_name LIKE %s OR sentiment_nb LIKE %s OR sentiment_svm LIKE %s)" if _is_postgres() else "(CAST(sentiment_id AS CHAR) LIKE %s OR CAST(review_id AS CHAR) LIKE %s OR CAST(hotel_id AS CHAR) LIKE %s OR user_name LIKE %s OR sentiment_nb LIKE %s OR sentiment_svm LIKE %s)")
             like = f"%{search_term}%"
             params.extend([like, like, like, like, like, like])
 
@@ -698,6 +845,11 @@ def create_sentiment_review_admin(review_id, sentiment_nb, sentiment_svm, source
             INSERT INTO sentiment_reviews
                 (review_id, hotel_id, user_name, review_text, rating, review_date, sentiment_nb, confidence_nb, sentiment_svm, confidence_svm, source)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING sentiment_id
+            """ if _is_postgres() else """
+            INSERT INTO sentiment_reviews
+                (review_id, hotel_id, user_name, review_text, rating, review_date, sentiment_nb, confidence_nb, sentiment_svm, confidence_svm, source)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
             (
                 base_review["review_id"],
@@ -713,8 +865,9 @@ def create_sentiment_review_admin(review_id, sentiment_nb, sentiment_svm, source
                 source,
             ),
         )
+        sentiment_id = _fetch_insert_id(cur) if _is_postgres() else cur.lastrowid
         conn.commit()
-        return cur.lastrowid
+        return sentiment_id
     finally:
         cur.close()
         conn.close()
@@ -780,11 +933,16 @@ def save_hotel_review(hotel_id, user_name, review_text, rating, review_date=None
             """
             INSERT INTO hotel_reviews (hotel_id, user_name, review_text, rating, review_date, source)
             VALUES (%s, %s, %s, %s, %s, %s)
+            RETURNING review_id
+            """ if _is_postgres() else """
+            INSERT INTO hotel_reviews (hotel_id, user_name, review_text, rating, review_date, source)
+            VALUES (%s, %s, %s, %s, %s, %s)
             """,
             (hotel_id, user_name, review_text, rating, normalized_date, source),
         )
+        review_id = _fetch_insert_id(cur) if _is_postgres() else cur.lastrowid
         conn.commit()
-        return cur.lastrowid
+        return review_id
     finally:
         cur.close()
         conn.close()
@@ -800,11 +958,17 @@ def save_sentiment_review(review_id, hotel_id, user_name, review_text, rating, r
             INSERT INTO sentiment_reviews
                 (review_id, hotel_id, user_name, review_text, rating, review_date, sentiment_nb, confidence_nb, sentiment_svm, confidence_svm, source)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING sentiment_id
+            """ if _is_postgres() else """
+            INSERT INTO sentiment_reviews
+                (review_id, hotel_id, user_name, review_text, rating, review_date, sentiment_nb, confidence_nb, sentiment_svm, confidence_svm, source)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
             (review_id, hotel_id, user_name, review_text, rating, normalized_date, nb, float(nb_conf or 0), svm, float(svm_conf or 0), source),
         )
+        sentiment_id = _fetch_insert_id(cur) if _is_postgres() else cur.lastrowid
         conn.commit()
-        return cur.lastrowid
+        return sentiment_id
     finally:
         cur.close()
         conn.close()
@@ -887,6 +1051,16 @@ def list_sentiments(hotel_id, limit=200, search=None):
             like = f"%{str(search).strip()}%"
             query += """
                 AND (
+                    CAST(s.review_id AS TEXT) LIKE %s
+                    OR CAST(s.hotel_id AS TEXT) LIKE %s
+                    OR s.user_name LIKE %s
+                    OR s.review_text LIKE %s
+                    OR s.sentiment_nb LIKE %s
+                    OR s.sentiment_svm LIKE %s
+                    OR s.source LIKE %s
+                )
+            """ if _is_postgres() else """
+                AND (
                     CAST(s.review_id AS CHAR) LIKE %s
                     OR CAST(s.hotel_id AS CHAR) LIKE %s
                     OR s.user_name LIKE %s
@@ -936,16 +1110,20 @@ def trend_reviews(hotel_id, days=30):
     conn = get_connection()
     cur = conn.cursor(dictionary=True)
     try:
-        cur.execute(
-            """
+        query = """
+            SELECT DATE(review_date) AS d, COUNT(*) AS cnt
+            FROM sentiment_reviews
+            WHERE hotel_id = %s AND review_date >= (NOW() - (%s * INTERVAL '1 day'))
+            GROUP BY DATE(review_date)
+            ORDER BY d
+            """ if _is_postgres() else """
             SELECT DATE(review_date) AS d, COUNT(*) AS cnt
             FROM sentiment_reviews
             WHERE hotel_id = %s AND review_date >= (NOW() - INTERVAL %s DAY)
             GROUP BY DATE(review_date)
             ORDER BY d
-            """,
-            (hotel_id, days),
-        )
+            """
+        cur.execute(query, (hotel_id, days))
         return cur.fetchall()
     finally:
         cur.close()
@@ -956,8 +1134,16 @@ def get_trend_sentiment(hotel_id, days=30):
     conn = get_connection()
     cur = conn.cursor(dictionary=True)
     try:
-        cur.execute(
-            """
+        query = """
+            SELECT DATE(COALESCE(review_date, created_at)) AS d,
+                   SUM(CASE WHEN LOWER(sentiment_nb) LIKE 'posit%' THEN 1 ELSE 0 END) AS pos,
+                   SUM(CASE WHEN LOWER(sentiment_nb) LIKE 'negat%' THEN 1 ELSE 0 END) AS neg
+            FROM sentiment_reviews
+            WHERE hotel_id = %s
+              AND COALESCE(review_date, created_at) >= CURRENT_DATE - (%s * INTERVAL '1 day')
+            GROUP BY d
+            ORDER BY d
+            """ if _is_postgres() else """
             SELECT DATE(COALESCE(review_date, created_at)) AS d,
                    SUM(CASE WHEN LOWER(sentiment_nb) LIKE 'posit%' THEN 1 ELSE 0 END) AS pos,
                    SUM(CASE WHEN LOWER(sentiment_nb) LIKE 'negat%' THEN 1 ELSE 0 END) AS neg
@@ -966,9 +1152,8 @@ def get_trend_sentiment(hotel_id, days=30):
               AND COALESCE(review_date, created_at) >= CURDATE() - INTERVAL %s DAY
             GROUP BY d
             ORDER BY d
-            """,
-            (hotel_id, days),
-        )
+            """
+        cur.execute(query, (hotel_id, days))
         return cur.fetchall()
     finally:
         cur.close()
@@ -982,26 +1167,32 @@ def get_review_stats(hotel_id):
         cur.execute("SELECT COUNT(*) AS total FROM sentiment_reviews WHERE hotel_id=%s", (hotel_id,))
         total = cur.fetchone()["total"]
 
-        cur.execute(
-            """
+        query_this_week = """
+            SELECT COUNT(*) AS c
+            FROM sentiment_reviews
+            WHERE hotel_id=%s AND review_date >= CURRENT_DATE - INTERVAL '7 days'
+            """ if _is_postgres() else """
             SELECT COUNT(*) AS c
             FROM sentiment_reviews
             WHERE hotel_id=%s AND review_date >= CURDATE() - INTERVAL 7 DAY
-            """,
-            (hotel_id,),
-        )
+            """
+        cur.execute(query_this_week, (hotel_id,))
         this_week = cur.fetchone()["c"]
 
-        cur.execute(
-            """
+        query_last_week = """
+            SELECT COUNT(*) AS c
+            FROM sentiment_reviews
+            WHERE hotel_id=%s
+              AND review_date >= CURRENT_DATE - INTERVAL '14 days'
+              AND review_date < CURRENT_DATE - INTERVAL '7 days'
+            """ if _is_postgres() else """
             SELECT COUNT(*) AS c
             FROM sentiment_reviews
             WHERE hotel_id=%s
               AND review_date >= CURDATE() - INTERVAL 14 DAY
               AND review_date < CURDATE() - INTERVAL 7 DAY
-            """,
-            (hotel_id,),
-        )
+            """
+        cur.execute(query_last_week, (hotel_id,))
         last_week = cur.fetchone()["c"]
 
         return total, this_week - last_week
@@ -1014,16 +1205,24 @@ def get_weekly_comparison(hotel_id):
     conn = get_connection()
     cur = conn.cursor(dictionary=True)
     try:
-        cur.execute(
-            """
+        query = """
+            SELECT
+              SUM(CASE WHEN review_date >= date_trunc('week', CURRENT_DATE)
+                        AND review_date < date_trunc('week', CURRENT_DATE) + INTERVAL '7 days'
+                       THEN 1 ELSE 0 END) AS this_week,
+              SUM(CASE WHEN review_date >= date_trunc('week', CURRENT_DATE) - INTERVAL '7 days'
+                        AND review_date < date_trunc('week', CURRENT_DATE)
+                       THEN 1 ELSE 0 END) AS last_week
+            FROM hotel_reviews
+            WHERE hotel_id = %s
+            """ if _is_postgres() else """
             SELECT
               SUM(CASE WHEN YEARWEEK(review_date, 1) = YEARWEEK(CURDATE(), 1) THEN 1 ELSE 0 END) AS this_week,
               SUM(CASE WHEN YEARWEEK(review_date, 1) = YEARWEEK(CURDATE(), 1) - 1 THEN 1 ELSE 0 END) AS last_week
             FROM hotel_reviews
             WHERE hotel_id = %s
-            """,
-            (hotel_id,),
-        )
+            """
+        cur.execute(query, (hotel_id,))
         row = cur.fetchone() or {}
         return {
             "this_week": row.get("this_week") or 0,
@@ -1196,6 +1395,10 @@ def save_telegram_user(chat_id, hotel_id=None):
             """
             INSERT INTO telegram_users (chat_id, hotel_id, subscribed)
             VALUES (%s, %s, TRUE)
+            ON CONFLICT (chat_id, hotel_id) DO UPDATE SET subscribed=TRUE
+            """ if _is_postgres() else """
+            INSERT INTO telegram_users (chat_id, hotel_id, subscribed)
+            VALUES (%s, %s, TRUE)
             ON DUPLICATE KEY UPDATE subscribed=TRUE
             """,
             (chat_id, hotel_id),
@@ -1229,6 +1432,10 @@ def add_subscriber(chat_id, hotel_id):
     try:
         cur.execute(
             """
+            INSERT INTO telegram_users (chat_id, hotel_id, subscribed)
+            VALUES (%s, %s, TRUE)
+            ON CONFLICT (chat_id, hotel_id) DO UPDATE SET subscribed=TRUE
+            """ if _is_postgres() else """
             INSERT INTO telegram_users (chat_id, hotel_id, subscribed)
             VALUES (%s, %s, TRUE)
             ON DUPLICATE KEY UPDATE subscribed=TRUE
@@ -1287,6 +1494,16 @@ def get_notifications(hotel_id, limit=None, search=None):
         if search and str(search).strip():
             like = f"%{str(search).strip()}%"
             base_query += """
+                AND (
+                    CAST(n.review_id AS TEXT) LIKE %s
+                    OR CAST(n.chat_id AS TEXT) LIKE %s
+                    OR n.status LIKE %s
+                    OR CAST(n.created_at AS TEXT) LIKE %s
+                    OR s.review_text LIKE %s
+                    OR s.sentiment_nb LIKE %s
+                    OR s.sentiment_svm LIKE %s
+                )
+            """ if _is_postgres() else """
                 AND (
                     CAST(n.review_id AS CHAR) LIKE %s
                     OR CAST(n.chat_id AS CHAR) LIKE %s
